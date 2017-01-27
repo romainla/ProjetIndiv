@@ -1,0 +1,57 @@
+#pragma once
+
+#include <Kinect.h>
+#include <stdio.h>
+#include <sstream>
+#include <string>
+#define _USE_MATH_DEFINES
+#include <math.h>
+#include "myFilterOrientation.h"
+#include "myFilterPosition.h"
+
+typedef enum typeExercise {
+	UPPER_LIMB_RIGHT = 0,
+	UPPER_LIMB_LEFT = 1,
+	LOWER_LIMB_RIGHT = 2,
+	LOWER_LIMB_LEFT = 3,
+	WHOLE_BODY_RIGHT = 4,
+	WHOLE_BODY_LEFT = 5
+}typeExercise;
+
+
+#define YPR 0
+#define YRP 1
+
+#if (YRP == 1) 
+static const char* labelsChannels[] = { "Xposition","Yposition","Zposition","Zrotation","Xrotation","Yrotation" };
+#else
+static const char* labelsChannels[] = { "Xposition","Yposition","Zposition","Zrotation","Yrotation","Xrotation" };
+#endif
+
+
+static const char* labelsRightArm[] = { "ShoulderRight","ElbowRight","WristRight","HandRight","End Site" };
+static const JointType JointsRightArm[5] = { JointType_ShoulderRight,JointType_ElbowRight, JointType_WristRight, JointType_HandRight, JointType_HandTipRight };
+
+static const char* labelsLeftArm[] = { "ShoulderLeft","ElbowLeft","WristLeft","HandLeft", "End Site" };
+static const JointType JointsLeftArm[5] = { JointType_ShoulderLeft,JointType_ElbowLeft, JointType_WristLeft, JointType_HandLeft, JointType_HandTipLeft };
+
+static const char* labelsRightLeg[] = { "HipRight","KneeRight", "AnkleRight","End Site" };
+static const JointType JointsRightLeg[4] = { JointType_HipRight,JointType_KneeRight, JointType_AnkleRight,JointType_FootRight };
+
+static const char* labelsLeftLeg[] = { "HipLeft",  "KneeLeft", "AnkleLeft", "End Site" };
+static const JointType JointsLeftLeg[4] = { JointType_HipLeft,  JointType_KneeLeft, JointType_AnkleLeft, JointType_FootLeft };
+
+
+static const char* labelsSpine[] = { "SpineMid","SpineShoulder" };
+static const JointType JointsSpine[] = { JointType_SpineMid ,JointType_SpineShoulder };
+static const char* labelsHead[] = { "Neck","End Site" };
+static const JointType JointsHead[] = { JointType_Neck , JointType_Head };
+
+static const int nbFrameByRaw = 1800;
+static const int nbMinMaxOfRecording = 100;
+static const char* listTabulations[] = { "","\t","\t\t","\t\t\t","\t\t\t\t","\t\t\t\t\t","\t\t\t\t\t\t","\t\t\t\t\t\t\t","\t\t\t\t\t\t\t\t","\t\t\t\t\t\t\t\t\t","\t\t\t\t\t\t\t\t\t\t" };
+static const int nbChannels[] = { 27,27,15,15,36,36 };
+
+static const char* labelsAll[] = { "SpineBase","SpineMid","Neck","Head","ShoulderLeft","ElbowLeft","WristLeft","HandLeft","ShoulderRight","ElbowRight",
+"WristRight","HandRight","HipLeft","KneeLeft","AnkleLeft","FootLeft","HipRight","KneeRight","AnkleRight","FootRight","SpineShoulder",
+"HandTipLeft","ThumbLeft","HandTipRight","ThumbRight" };
