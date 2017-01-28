@@ -13,6 +13,9 @@ private:
 	KinectJointFilter* m_filterOrientation;
 	myFilterPosition* m_filterPosition;
 	typeExercise m_exercise;
+	int m_nbData;
+
+	static const int nbData[4];
 
 	/// <summary>
 	/// Function to compute the scalar product between two position vector
@@ -68,4 +71,8 @@ public:
 	///</summary>
 	void saveFile();
 
+	/// <summary>
+	/// Function to write the name of the different columns of the csv file
+	///</summary>
+	void writeNameColumns();
 };

@@ -1,5 +1,7 @@
 #include "myAngleFile.h"
 
+const int myAngleFile::nbData[4] = {16,16,16,16}; // 2 joints with angle2D, quaternion and the 3 Euler angles, 2 joints withe angle2D, quaternion and Euler angles
+
 double myAngleFile::scalarProduct(const CameraSpacePoint & p1, const CameraSpacePoint & p2)
 {
 	double scalProd = p1.X * p2.X + p1.Y * p2.Y + p1.Z*p2.Z;
@@ -35,6 +37,7 @@ myAngleFile::myAngleFile()
 	m_nbMinRecorded = 0;
 	m_filename = "test.csv";
 	m_exercise = typeExercise::UPPER_LIMB_RIGHT;
+	m_nbData = nbData[(int)m_exercise];
 }
 
 myAngleFile::myAngleFile(char * filename, typeExercise exercise)
@@ -57,6 +60,7 @@ myAngleFile::myAngleFile(char * filename, typeExercise exercise)
 	else {
 		m_exercise = exercise;
 	}
+	m_nbData = nbData[(int)m_exercise];
 }
 
 void myAngleFile::createFile(IBody * ppBodies)
@@ -101,10 +105,10 @@ void myAngleFile::update(IBody * pBody, double fps)
 	}
 
 	// For the upper_limb exercises
-	static JointType upper_limb_right_children[4] = { JointType_ShoulderRight,	JointType_ElbowRight,	JointType_WristRight,	JointType_HandRight };
-	static JointType upper_limb_right_parent[3] = { JointType_SpineShoulder,	JointType_ShoulderRight,JointType_ElbowRight };
-	static JointType upper_limb_left_children[4] = { JointType_ShoulderLeft,		JointType_ElbowLeft,	JointType_WristLeft,	JointType_HandLeft };
-	static JointType upper_limb_left_parent[3] = { JointType_SpineShoulder,	JointType_ShoulderLeft,	JointType_ElbowLeft };
+	static JointType upper_limb_right_children[3] = { 	JointType_ElbowRight,	JointType_WristRight,	JointType_HandRight };
+	static JointType upper_limb_right_parent[2] = { 	JointType_ShoulderRight,JointType_ElbowRight };
+	static JointType upper_limb_left_children[3] = { 	JointType_ElbowLeft,	JointType_WristLeft,	JointType_HandLeft };
+	static JointType upper_limb_left_parent[2] = {		JointType_ShoulderLeft,	JointType_ElbowLeft };
 
 	// For the lower_limb exercises
 	static JointType lower_limb_right_children[3] = { JointType_KneeRight,	JointType_AnkleRight,			JointType_FootRight };
@@ -120,12 +124,12 @@ void myAngleFile::update(IBody * pBody, double fps)
 	case UPPER_LIMB_RIGHT:
 		listJoints = upper_limb_right_children;
 		listJointsParents = upper_limb_right_parent;
-		nbJoints = 4;
+		nbJoints = 3;
 		break;
 	case UPPER_LIMB_LEFT:
 		listJoints = upper_limb_left_children;
 		listJointsParents = upper_limb_left_parent;
-		nbJoints = 4;
+		nbJoints = 3;
 		break;
 	case LOWER_LIMB_RIGHT:
 		listJoints = lower_limb_right_children;
@@ -140,7 +144,7 @@ void myAngleFile::update(IBody * pBody, double fps)
 	default:
 		listJoints = upper_limb_right_children;
 		listJointsParents = upper_limb_right_parent;
-		nbJoints = 4;
+		nbJoints = 3;
 		break;
 	}
 
@@ -222,6 +226,14 @@ void myAngleFile::storeMotionInformation(IBody * pBody, JointType * listJoints, 
 		double roll = atan2(2 * ((y * z) + (w * x)), (w * w) - (x * x) - (y * y) + (z * z)) / M_PI * 180.0; // Roll Euler angle = rotation around x
 		double pitch = asin(2 * ((w * y) - (x * z))) / M_PI * 180.0; //Pitch Euler Angle = rotation around y
 
+		m_bufferFrame[m_nbMinRecorded][m_nbFrame][index] = w;
+		index++;
+		m_bufferFrame[m_nbMinRecorded][m_nbFrame][index] = x;
+		index++;
+		m_bufferFrame[m_nbMinRecorded][m_nbFrame][index] = y;
+		index++;
+		m_bufferFrame[m_nbMinRecorded][m_nbFrame][index] = z;
+		index++;
 		if (isfinite(yaw)) {
 			m_bufferFrame[m_nbMinRecorded][m_nbFrame][index] = yaw; //Zrotation channel = Yaw Euler angle
 		}
@@ -271,7 +283,7 @@ void myAngleFile::saveAndClose()
 // TO DO: adapt this function to the angleFile
 void myAngleFile::saveFile()
 {
-	int channels = nbChannels[(int)m_exercise];
+	int channels = m_nbData;
 	fwrite("Frames: ", strlen("Frames: "), 1, m_angleFile);
 	std::stringstream nbFrameString;
 	nbFrameString << m_nbFrame << "\n";
@@ -283,6 +295,7 @@ void myAngleFile::saveFile()
 	frameTimeString << frameTime << "\n";
 	std::string frameTimeChar = frameTimeString.str();
 	fwrite(frameTimeChar.c_str(), strlen(frameTimeChar.c_str()), 1, m_angleFile);
+	writeNameColumns();
 	for (int i = 0; i < m_nbFrame; i++) {
 		std::stringstream raw;
 		std::string rawChar;
@@ -294,4 +307,27 @@ void myAngleFile::saveFile()
 		fwrite(rawChar.c_str(), strlen(rawChar.c_str()), 1, m_angleFile);
 
 	}
+}
+
+void myAngleFile::writeNameColumns()
+{
+	char **nameColumns;
+	int nbColumns = m_nbData;
+	char *nameLower[] = { "angle2D_Knee","quaternion_W_Knee","quaternion_X_Knee" ,"quaternion_Y_Knee" ,"quaternion_Z_Knee", "Yaw_Knee", "Pitch_Knee", "Roll_Knee","angle2D_Ankle","quaternion_W_Ankle","quaternion_X_Ankle" ,"quaternion_Y_Ankle" ,"quaternion_Z_Ankle", "Yaw_Ankle", "Pitch_Ankle", "Roll_Ankle" };
+	char *nameUpper[] = { "angle2D_Elbow","quaternion_W_Elbow","quaternion_X_Elbow" ,"quaternion_Y_Elbow" ,"quaternion_Z_Elbow", "Yaw_Elbow", "Pitch_Elbow", "Roll_Elbow","angle2D_Wrist","quaternion_W_Wrist","quaternion_X_Wrist" ,"quaternion_Y_Wrist" ,"quaternion_Z_Wrist", "Yaw_Wrist", "Pitch_Wrist", "Roll_Wrist" };
+	switch (m_exercise) {
+	case typeExercise::LOWER_LIMB_LEFT:
+	case typeExercise::LOWER_LIMB_RIGHT:
+		nameColumns = nameLower;
+		break;
+	case typeExercise::UPPER_LIMB_LEFT:
+	case typeExercise::UPPER_LIMB_RIGHT:
+	default:
+		nameColumns = nameUpper;
+	}
+	for (int i = 0; i < nbColumns; i++) {
+		fwrite(nameColumns[i], strlen(nameColumns[i]), 1, m_angleFile);
+		fwrite(" ", strlen(" "), 1, m_angleFile);
+	}
+	fwrite("\n", strlen("\n"), 1, m_angleFile);
 }
