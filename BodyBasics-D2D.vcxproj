@@ -22,6 +22,7 @@
     <ClCompile Include="BodyBasics.cpp" />
     <ClCompile Include="myBVH.cpp" />
     <ClCompile Include="myFilterOrientation.cpp" />
+    <ClCompile Include="myFilterPosition.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="app.ico" />

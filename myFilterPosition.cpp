@@ -1,6 +1,6 @@
-#include "myFilter.h"
+#include "myFilterPosition.h"
 
-KinectJointFilter::KinectJointFilter() {
+myFilterPosition::myFilterPosition() {
 	
 	for (int i = 0; i < JointType_Count; i++)
 	{
@@ -10,21 +10,21 @@ KinectJointFilter::KinectJointFilter() {
 	Init();
 }
 
-KinectJointFilter::~KinectJointFilter()
+myFilterPosition::~myFilterPosition()
 {
 	Shutdown();
 }
 
-void KinectJointFilter::Init(float fSmoothing, float fCorrection, float fPrediction, float fJitterRadius, float fMaxDeviationRadius)
+void myFilterPosition::Init(float fSmoothing, float fCorrection, float fPrediction, float fJitterRadius, float fMaxDeviationRadius)
 {
 	Reset(fSmoothing, fCorrection, fPrediction, fJitterRadius, fMaxDeviationRadius);
 }
 
-void KinectJointFilter::Shutdown()
+void myFilterPosition::Shutdown()
 {
 }
 
-void KinectJointFilter::Reset(float fSmoothing, float fCorrection, float fPrediction, float fJitterRadius, float fMaxDeviationRadius)
+void myFilterPosition::Reset(float fSmoothing, float fCorrection, float fPrediction, float fJitterRadius, float fMaxDeviationRadius)
 {
 	
 	m_fMaxDeviationRadius = fMaxDeviationRadius; // Size of the max prediction radius Can snap back to noisy data when too high
@@ -55,7 +55,7 @@ void KinectJointFilter::Reset(float fSmoothing, float fCorrection, float fPredic
 	}
 }
 
-void KinectJointFilter::UpdateFilter(IBody* pBody)
+void myFilterPosition::UpdateFilter(IBody* pBody)
 {
 	if (pBody == NULL)
 	{
@@ -91,19 +91,19 @@ void KinectJointFilter::UpdateFilter(IBody* pBody)
 	}
 }
 
-bool KinectJointFilter::JointPositionIsValid(CameraSpacePoint vJointPosition)
+bool myFilterPosition::JointPositionIsValid(CameraSpacePoint vJointPosition)
 {
 	return (vJointPosition.X != 0.0f ||
 		vJointPosition.Y != 0.0f ||
 		vJointPosition.Z != 0.0f);
 }
 
-CameraSpacePoint* KinectJointFilter::GetFilteredJoints()
+CameraSpacePoint* myFilterPosition::GetFilteredJoints()
 {
 	return m_pFilteredJoints;
 }
 
-CameraSpacePoint KinectJointFilter::CSVectorSet(float x, float y, float z)
+CameraSpacePoint myFilterPosition::CSVectorSet(float x, float y, float z)
 {
 	CameraSpacePoint point = CameraSpacePoint();
 
@@ -114,7 +114,7 @@ CameraSpacePoint KinectJointFilter::CSVectorSet(float x, float y, float z)
 	return point;
 }
 
-CameraSpacePoint KinectJointFilter::CSVectorZero()
+CameraSpacePoint myFilterPosition::CSVectorZero()
 {
 	CameraSpacePoint point = CameraSpacePoint();
 
@@ -125,7 +125,7 @@ CameraSpacePoint KinectJointFilter::CSVectorZero()
 	return point;
 }
 
-CameraSpacePoint KinectJointFilter::CSVectorAdd(CameraSpacePoint p1, CameraSpacePoint p2)
+CameraSpacePoint myFilterPosition::CSVectorAdd(CameraSpacePoint p1, CameraSpacePoint p2)
 {
 	CameraSpacePoint sum = CameraSpacePoint();
 
@@ -136,7 +136,7 @@ CameraSpacePoint KinectJointFilter::CSVectorAdd(CameraSpacePoint p1, CameraSpace
 	return sum;
 }
 
-CameraSpacePoint KinectJointFilter::CSVectorScale(CameraSpacePoint p, float scale)
+CameraSpacePoint myFilterPosition::CSVectorScale(CameraSpacePoint p, float scale)
 {
 	CameraSpacePoint point = CameraSpacePoint();
 
@@ -147,7 +147,7 @@ CameraSpacePoint KinectJointFilter::CSVectorScale(CameraSpacePoint p, float scal
 	return point;
 }
 
-CameraSpacePoint KinectJointFilter::CSVectorSubtract(CameraSpacePoint p1, CameraSpacePoint p2)
+CameraSpacePoint myFilterPosition::CSVectorSubtract(CameraSpacePoint p1, CameraSpacePoint p2)
 {
 	CameraSpacePoint diff = CameraSpacePoint();
 
@@ -158,12 +158,12 @@ CameraSpacePoint KinectJointFilter::CSVectorSubtract(CameraSpacePoint p1, Camera
 	return diff;
 }
 
-float KinectJointFilter::CSVectorLength(CameraSpacePoint p)
+float myFilterPosition::CSVectorLength(CameraSpacePoint p)
 {
 	return sqrt(p.X * p.X + p.Y * p.Y + p.Z * p.Z);
 }
 
-void KinectJointFilter::UpdateJoint(Joint* joints, JointType jt, TRANSFORM_SMOOTH_PARAMETERS smoothingParams)
+void myFilterPosition::UpdateJoint(Joint* joints, JointType jt, TRANSFORM_SMOOTH_PARAMETERS smoothingParams)
 {
 	CameraSpacePoint vPrevRawPosition;
 	CameraSpacePoint vPrevFilteredPosition;
