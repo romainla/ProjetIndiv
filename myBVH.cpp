@@ -14,9 +14,10 @@ myBVH::myBVH()
 	m_initialPitchRootY = 0.0;
 	m_initialRollRootX = 0.0;
 	m_initialYawRootZ = 0.0;
+	m_exercise = typeExercise::UPPER_LIMB_RIGHT;
 }
 
-myBVH::myBVH(char* filename) {
+myBVH::myBVH(char* filename, typeExercise exercise) {
 	std::stringstream filenamestream;
 #if (YPR == 1) 
 	filenamestream << filename << "YPR.bvh";
@@ -38,25 +39,26 @@ myBVH::myBVH(char* filename) {
 	m_initialPitchRootY = 0.0;
 	m_initialRollRootX = 0.0;
 	m_initialYawRootZ = 0.0;
+	m_exercise = exercise;
 }
 
-void myBVH::createFile(IBody * pBody, typeExercise exercise)
+void myBVH::createFile(IBody * pBody)
 {
 	m_bvhFile = fopen(m_filename, "w");
-	this->writeHierarchy(pBody, exercise);
+	this->writeHierarchy(pBody);
 	m_filter = new KinectJointFilter();
 	m_filter->Init();
 	m_alreadyCreatedBvh = true;
 	m_ref_yaw_orientation = NULL;
 	m_ref_pitch_orientation = NULL;
 	m_ref_roll_orientation = NULL;
-	int nbTotalChannels = nbChannels[exercise];
+	int nbTotalChannels = nbChannels[m_exercise];
 	m_ref_yaw_orientation = (double*)malloc((nbTotalChannels - 6) * sizeof(double)); //-6 because the information of the root are registered separately
 	m_ref_pitch_orientation = (double*)malloc((nbTotalChannels - 6) * sizeof(double)); //-6 because the information of the root are registered separately
 	m_ref_roll_orientation = (double*)malloc((nbTotalChannels - 6) * sizeof(double)); //-6 because the information of the root are registered separately
 }
 
-void myBVH::writeHierarchy(IBody * pBody, typeExercise exercise) {
+void myBVH::writeHierarchy(IBody * pBody) {
 	char indexTabulation = 0;
 
 	char initialisation[] = "HIERARCHY\nROOT ";
@@ -84,12 +86,12 @@ void myBVH::writeHierarchy(IBody * pBody, typeExercise exercise) {
 	Joint joints[JointType_Count];
 	HRESULT hr = pBody->GetJoints(_countof(joints), joints);
 	if (SUCCEEDED(hr)) {
-		switch (exercise) {
+		switch (m_exercise) {
 		case UPPER_LIMB_RIGHT:
-			this->writeSpine(joints, exercise, indexTabulation);
+			this->writeSpine(joints, indexTabulation);
 			break;
 		case UPPER_LIMB_LEFT:
-			this->writeSpine(joints, exercise, indexTabulation);
+			this->writeSpine(joints, indexTabulation);
 			break;
 		case LOWER_LIMB_RIGHT:
 			this->writeRightLeg(joints, indexTabulation);
@@ -98,22 +100,22 @@ void myBVH::writeHierarchy(IBody * pBody, typeExercise exercise) {
 			this->writeLeftLeg(joints, indexTabulation);
 			break;
 		case WHOLE_BODY_RIGHT:
-			this->writeSpine(joints, exercise, indexTabulation);
+			this->writeSpine(joints, indexTabulation);
 			this->writeRightLeg(joints, indexTabulation);
 			break;
 		case WHOLE_BODY_LEFT:
-			this->writeSpine(joints, exercise, indexTabulation);
+			this->writeSpine(joints, indexTabulation);
 			this->writeLeftLeg(joints, indexTabulation);
 			break;
 		default:
-			this->writeSpine(joints, UPPER_LIMB_RIGHT, indexTabulation);
+			this->writeSpine(joints, indexTabulation);
 		}
 		fwrite("}\n", strlen("}\n"), 1, m_bvhFile);
 
 	}
 }
 
-void myBVH::writeSpine(Joint* joints, typeExercise exercise, char indexTabulation)
+void myBVH::writeSpine(Joint* joints, char indexTabulation)
 {
 	char labelJoint[] = "JOINT ";
 	int nbChannels = 6;
@@ -162,7 +164,7 @@ void myBVH::writeSpine(Joint* joints, typeExercise exercise, char indexTabulatio
 
 	this->writeHead(joints, indexTabulation);
 
-	switch (exercise) {
+	switch (m_exercise) {
 	case UPPER_LIMB_RIGHT:
 		this->writeRightArm(joints, indexTabulation);
 		break;
@@ -269,10 +271,10 @@ void myBVH::writeLeftLeg(Joint* joints, char indexTabulation)
 	this->writeBonesHierarchy(joints, indexTabulation, 4, parents, JointsLeftLeg, labelsLeftLeg);
 }
 
-void myBVH::update(IBody * pBody, typeExercise exercise, double fps) {
-	int nbTotalChannels = nbChannels[exercise];
+void myBVH::update(IBody * pBody,  double fps) {
+	int nbTotalChannels = nbChannels[m_exercise];
 	if (!m_alreadyCreatedBvh) {
-		this->createFile(pBody, exercise);
+		this->createFile(pBody);
 		m_bufferFrame[m_nbMinRecorded] = (double**)malloc(nbFrameByRaw * sizeof(double*));
 
 		for (int i = 0; i < nbFrameByRaw; i++)m_bufferFrame[m_nbMinRecorded][i] = (double*)malloc(nbTotalChannels*sizeof(double));
@@ -322,7 +324,7 @@ void myBVH::update(IBody * pBody, typeExercise exercise, double fps) {
 	JointType* listJointsParents;
 	bool* jointsUtils;
 	char nbJoints;
-	switch (exercise) {
+	switch (m_exercise) {
 	case UPPER_LIMB_RIGHT:
 		listJoints = upper_limb_right_children;
 		listJointsParents = upper_limb_right_parent;
@@ -374,9 +376,9 @@ void myBVH::update(IBody * pBody, typeExercise exercise, double fps) {
 }
 
 //
-void myBVH::saveAndClose(typeExercise exercise)
+void myBVH::saveAndClose()
 {
-	this->saveFile(exercise);
+	this->saveFile();
 	fclose(m_bvhFile);
 
 	free(m_filename);
@@ -397,8 +399,8 @@ void myBVH::saveAndClose(typeExercise exercise)
 	free(m_bufferFrame);
 }
 
-void myBVH::saveFile(typeExercise exercise) {
-	int channels = nbChannels[(int)exercise];
+void myBVH::saveFile() {
+	int channels = nbChannels[(int)m_exercise];
 	fwrite("MOTION\n", strlen("MOTION\n"), 1, m_bvhFile);
 	fwrite("Frames: ", strlen("Frames: "), 1, m_bvhFile);
 	std::stringstream nbFrameString;

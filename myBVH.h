@@ -12,6 +12,7 @@ private :
 	double*** m_bufferFrame;
 	int m_nbMinRecorded;
 	KinectJointFilter* m_filter;
+	typeExercise m_exercise;
 
 	//initial position of the root joint
 	double m_initialPositionRootX;
@@ -28,22 +29,22 @@ private :
 	
 public:
 	myBVH();
-	myBVH(char* filename);
+	myBVH(char* filename, typeExercise exercise);
 
 	/// <summary>
 	/// Function to create the bvh file
 	///</summary>
-	void createFile(IBody* ppBodies, typeExercise exercise);
+	void createFile(IBody* ppBodies);
 
 	/// <summary>
 	/// Function to write the hierarchy depending on the exercise in the bvh file
 	///</summary>
-	void writeHierarchy(IBody * pBody, typeExercise exercise);
+	void writeHierarchy(IBody * pBody);
 
 	/// <summary>
 	/// Function to write the spine, head and arm (depending on the exercise) in the bvh file
 	///</summary>
-	void writeSpine(Joint* joints, typeExercise exercise, char indexTabulation);
+	void writeSpine(Joint* joints, char indexTabulation);
 
 	/// <summary>
 	/// Function to write bones hierarchy
@@ -80,7 +81,7 @@ public:
 	/// If it has not already been created, the bvh file will be create thanks to createFile.
 	/// Otherwise, call storeMotionInformation with the joints corresponding to the exercise
 	///</summary>
-	void update(IBody * pBody, typeExercise exercise, double fps);
+	void update(IBody * pBody, double fps);
 	
 	/// <summary>
 	/// Function to store the motion information in the dedicated array. 
@@ -92,10 +93,10 @@ public:
 	/// <summary>
 	/// Function to save and close the bvh file
 	///</summary>
-	void saveAndClose(typeExercise exercise);
+	void saveAndClose();
 
 	/// <summary>
 	/// Function to save the bvh file
 	///</summary>
-	void saveFile(typeExercise exercise);
+	void saveFile();
 };
