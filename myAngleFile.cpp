@@ -1,5 +1,23 @@
 #include "myAngleFile.h"
 
+double myAngleFile::scalarProduct(const CameraSpacePoint & p1, const CameraSpacePoint & p2)
+{
+	double scalProd = p1.X * p2.X + p1.Y * p2.Y + p1.Z*p2.Z;
+	return scalProd;
+}
+
+double myAngleFile::length(const CameraSpacePoint & p1)
+{
+	double length = sqrt(p1.X * p1.X + p1.Y * p1.Y + p1.Z*p1.Z);
+	return length;
+}
+
+double myAngleFile::getAngle(const CameraSpacePoint & p1, const CameraSpacePoint & p2)
+{
+	double cosTheta = scalarProduct(p1, p2) / (length(p1)*length(p2));
+	return acos(cosTheta);
+}
+
 myAngleFile::myAngleFile()
 {
 	m_alreadyCreated = false;

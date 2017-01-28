@@ -229,6 +229,7 @@ void KinectJointFilter::UpdateJoint(IBody* pBody, JointType jt)
 			prevCorrectQuaternion = vPrevRawPosition;
 		}
 		double cosTheta = CSVectorScalarProduct(vRawPosition, prevCorrectQuaternion);
+		cosTheta = cosTheta / (CSVectorLength(vRawPosition)*CSVectorLength(prevCorrectQuaternion));
 		double theta = acos(cosTheta);
 		double scale;
 		if ((double)(theta/M_PI - (int)theta/M_PI) == 0.0) { //theta is a multiple of M_PI -> sin(theta)=0
@@ -238,6 +239,7 @@ void KinectJointFilter::UpdateJoint(IBody* pBody, JointType jt)
 			scale = sin(theta / 2) / sin(theta);
 		}
 		vFilteredPosition = CSVectorAdd(CSVectorScale(vRawPosition, scale), CSVectorScale(prevCorrectQuaternion, scale));
+		vFilteredPosition = CSVectorScale(vFilteredPosition, 1 / CSVectorLength(vFilteredPosition));
 		//vFilteredPosition = CSVectorScale(CSVectorAdd(vRawPosition, vPrevRawPosition), 0.5f);
 		//vDiff = CSVectorSubtract(vFilteredPosition, vPrevFilteredPosition);
 		//vTrend = CSVectorAdd(CSVectorScale(vDiff, smoothingParams.fCorrection), CSVectorScale(vPrevTrend, 1.0f - smoothingParams.fCorrection));

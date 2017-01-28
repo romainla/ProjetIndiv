@@ -14,6 +14,10 @@ private:
 	myFilterPosition* m_filterPosition;
 	typeExercise m_exercise;
 
+	static double scalarProduct(const CameraSpacePoint& p1, const CameraSpacePoint& p2);
+	static double length(const CameraSpacePoint& p1);
+	static double getAngle(const CameraSpacePoint& p1, const CameraSpacePoint& p2);
+
 public:
 	
 	myAngleFile();
