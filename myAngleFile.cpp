@@ -6,9 +6,11 @@ myAngleFile::myAngleFile()
 	m_nbFrame = 0;
 	m_fps = 0.00;
 	m_nbMinRecorded = 0;
+	m_filename = "test.csv";
+	m_exercise = typeExercise::UPPER_LIMB_RIGHT;
 }
 
-myAngleFile::myAngleFile(char * filename)
+myAngleFile::myAngleFile(char * filename, typeExercise exercise)
 {
 	std::stringstream filenamestream; 
 	filenamestream << filename << ".csv";
@@ -19,9 +21,17 @@ myAngleFile::myAngleFile(char * filename)
 	m_fps = 0.00;
 	m_bufferFrame = (double***)malloc(nbMinMaxOfRecording * sizeof(double**));
 	m_nbMinRecorded = 0;
+	if (exercise == typeExercise::WHOLE_BODY_LEFT ) {
+		m_exercise = typeExercise::UPPER_LIMB_LEFT;
+	}else if (exercise == typeExercise::WHOLE_BODY_RIGHT){
+		m_exercise = typeExercise::UPPER_LIMB_RIGHT;
+	}
+	else {
+		m_exercise = exercise;
+	}
 }
 
-void myAngleFile::createFile(IBody * ppBodies, typeExercise exercise)
+void myAngleFile::createFile(IBody * ppBodies)
 {
 	m_angleFile = fopen(m_filename, "w");
 	
@@ -35,11 +45,11 @@ void myAngleFile::createFile(IBody * ppBodies, typeExercise exercise)
 
 }
 
-void myAngleFile::update(IBody * pBody, typeExercise exercise, double fps)
+void myAngleFile::update(IBody * pBody, double fps)
 {
-	int nbTotalChannels = nbChannels[exercise];
+	int nbTotalChannels = nbChannels[m_exercise];
 	if (!m_alreadyCreated) {
-		this->createFile(pBody, exercise);
+		this->createFile(pBody);
 		m_bufferFrame[m_nbMinRecorded] = (double**)malloc(nbFrameByRaw * sizeof(double*));
 
 		for (int i = 0; i < nbFrameByRaw; i++)m_bufferFrame[m_nbMinRecorded][i] = (double*)malloc(nbTotalChannels*sizeof(double));
@@ -91,7 +101,7 @@ void myAngleFile::update(IBody * pBody, typeExercise exercise, double fps)
 	JointType* listJointsParents;
 	bool* jointsUtils;
 	char nbJoints;
-	switch (exercise) {
+	switch (m_exercise) {
 	case UPPER_LIMB_RIGHT:
 		listJoints = upper_limb_right_children;
 		listJointsParents = upper_limb_right_parent;
@@ -293,9 +303,9 @@ void myAngleFile::storeMotionInformation(IBody * pBody, JointType * listJoints, 
 	}
 }
 
-void myAngleFile::saveAndClose(typeExercise exercise)
+void myAngleFile::saveAndClose()
 {
-	this->saveFile(exercise);
+	this->saveFile();
 	fclose(m_angleFile);
 
 	for (int i = 0; i < m_nbMinRecorded + 1; i++) {
@@ -313,9 +323,9 @@ void myAngleFile::saveAndClose(typeExercise exercise)
 }
 
 // TO DO: adapt this function to the angleFile
-void myAngleFile::saveFile(typeExercise exercise)
+void myAngleFile::saveFile()
 {
-	int channels = nbChannels[(int)exercise];
+	int channels = nbChannels[(int)m_exercise];
 	fwrite("Frames: ", strlen("Frames: "), 1, m_angleFile);
 	std::stringstream nbFrameString;
 	nbFrameString << m_nbFrame << "\n";
