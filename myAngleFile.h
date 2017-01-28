@@ -10,7 +10,8 @@ private:
 	int m_nbFrame;
 	double*** m_bufferFrame;
 	int m_nbMinRecorded;
-	KinectJointFilter* m_filter;
+	KinectJointFilter* m_filterOrientation;
+	myFilterPosition* m_filterPosition;
 
 public:
 	
