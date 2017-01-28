@@ -306,11 +306,11 @@ void myBVH::update(IBody * pBody,  double fps) {
 
 	// For the lower_limb exercises
 	static JointType lower_limb_right_children[5] = { JointType_SpineBase,		JointType_HipRight,		JointType_KneeRight,	JointType_AnkleRight,			JointType_FootRight };
-	static bool useful_joints_low_right[5] = { true,					true,					true,					true,							false };
-	static JointType lower_limb_right_parent[] = { JointType_SpineBase,	JointType_HipRight,		JointType_KneeRight,			JointType_AnkleRight };
+	static bool useful_joints_low_right[5] = {			true,					true,					true,					true,							false };
+	static JointType lower_limb_right_parent[] = {								JointType_SpineBase,	JointType_HipRight,		JointType_KneeRight,			JointType_AnkleRight };
 	static JointType lower_limb_left_children[5] = { JointType_SpineBase,		JointType_HipLeft,		JointType_KneeLeft,		JointType_AnkleLeft,			JointType_FootLeft };
-	static bool useful_joints_low_left[5] = { true,						true,					true,					true,							false };
-	static JointType lower_limb_left_parent[] = { JointType_SpineBase,	JointType_HipLeft,		JointType_KneeLeft,			JointType_AnkleLeft };
+	static bool useful_joints_low_left[5] = {		 true,						true,					true,					true,							false };
+	static JointType lower_limb_left_parent[] = {								JointType_SpineBase,	JointType_HipLeft,		JointType_KneeLeft,			JointType_AnkleLeft };
 
 	// For the whole body exercises
 	static JointType whole_right_children[14] = { JointType_SpineBase,		JointType_SpineMid,		JointType_SpineShoulder,	JointType_Neck,			JointType_Head, JointType_ShoulderRight,	JointType_ElbowRight,	JointType_WristRight,	JointType_HandRight, JointType_HandTipRight ,JointType_HipRight,	JointType_KneeRight,	JointType_AnkleRight,			JointType_FootRight };

@@ -14,9 +14,25 @@ private:
 	myFilterPosition* m_filterPosition;
 	typeExercise m_exercise;
 
+	/// <summary>
+	/// Function to compute the scalar product between two position vector
+	///</summary>
 	static double scalarProduct(const CameraSpacePoint& p1, const CameraSpacePoint& p2);
+	
+	/// <summary>
+	/// Function to compute the length of a position vector
+	///</summary>
 	static double length(const CameraSpacePoint& p1);
+	
+	/// <summary>
+	/// Function to compute the angle in radian between two positions vector
+	///</summary>
 	static double getAngle(const CameraSpacePoint& p1, const CameraSpacePoint& p2);
+	
+	/// <summary>
+	/// Function to compute the difference p1 - p2
+	///</summary>
+	static CameraSpacePoint difference(const CameraSpacePoint& p1, const CameraSpacePoint& p2);
 
 public:
 	
@@ -24,31 +40,31 @@ public:
 	myAngleFile(char* filename, typeExercise exercise);
 
 	/// <summary>
-	/// Function to create the bvh file
+	/// Function to create the angle file
 	///</summary>
 	void createFile(IBody* ppBodies);
 
 	/// <summary>
-	/// Function to update the information the bvh file. 
-	/// If it has not already been created, the bvh file will be create thanks to createFile.
+	/// Function to update the information the angle file. 
+	/// If it has not already been created, the angle file will be create thanks to createFile.
 	/// Otherwise, call storeMotionInformation with the joints corresponding to the exercise
 	///</summary>
 	void update(IBody * pBody, double fps);
 
 	/// <summary>
 	/// Function to store the motion information in the dedicated array. 
-	/// The array is recorded in the bvh file when the program is closed thanks to 
+	/// The array is recorded in the angle file when the program is closed thanks to 
 	/// saveAndClose
 	///</summary>
-	void storeMotionInformation(IBody * pBody, JointType *listJoints, JointType *listJointsParents, bool *jointsUtils, char nbJoint, int nbTotalChannel);
+	void storeMotionInformation(IBody * pBody, JointType *listJoints, JointType *listJointsParents, char nbJoint, int nbTotalChannel);
 
 	/// <summary>
-	/// Function to save and close the bvh file
+	/// Function to save and close the angle file
 	///</summary>
 	void saveAndClose();
 
 	/// <summary>
-	/// Function to save the bvh file
+	/// Function to save the angle file
 	///</summary>
 	void saveFile();
 
