@@ -15,23 +15,26 @@ KinectJointFilter::~KinectJointFilter()
 	Shutdown();
 }
 
-void KinectJointFilter::Init(float fSmoothing, float fCorrection, float fPrediction, float fJitterRadius, float fMaxDeviationRadius)
+//void KinectJointFilter::Init(float fSmoothing, float fCorrection, float fPrediction, float fJitterRadius, float fMaxDeviationRadius)
+void KinectJointFilter::Init()
 {
-	Reset(fSmoothing, fCorrection, fPrediction, fJitterRadius, fMaxDeviationRadius);
+	Reset();
+	//Reset(fSmoothing, fCorrection, fPrediction, fJitterRadius, fMaxDeviationRadius);
 }
 
 void KinectJointFilter::Shutdown()
 {
 }
 
-void KinectJointFilter::Reset(float fSmoothing, float fCorrection, float fPrediction, float fJitterRadius, float fMaxDeviationRadius)
+//void KinectJointFilter::Reset(float fSmoothing, float fCorrection, float fPrediction, float fJitterRadius, float fMaxDeviationRadius)
+void KinectJointFilter::Reset()
 {
 	
-	m_fMaxDeviationRadius = fMaxDeviationRadius; // Size of the max prediction radius Can snap back to noisy data when too high
-	m_fSmoothing = fSmoothing;                   // How much smothing will occur.  Will lag when too high
-	m_fCorrection = fCorrection;                 // How much to correct back from prediction.  Can make things springy
-	m_fPrediction = fPrediction;                 // Amount of prediction into the future to use. Can over shoot when too high
-	m_fJitterRadius = fJitterRadius;             // Size of the radius where jitter is removed. Can do too much smoothing when too high
+	//m_fMaxDeviationRadius = fMaxDeviationRadius; // Size of the max prediction radius Can snap back to noisy data when too high
+	//m_fSmoothing = fSmoothing;                   // How much smothing will occur.  Will lag when too high
+	//m_fCorrection = fCorrection;                 // How much to correct back from prediction.  Can make things springy
+	//m_fPrediction = fPrediction;                 // Amount of prediction into the future to use. Can over shoot when too high
+	//m_fJitterRadius = fJitterRadius;             // Size of the radius where jitter is removed. Can do too much smoothing when too high
 
 	for (int i = 0; i < JointType_Count; i++)
 	{
@@ -50,12 +53,13 @@ void KinectJointFilter::Reset(float fSmoothing, float fCorrection, float fPredic
 		m_pHistory[i].m_vRawPosition.y = 0.0f;
 		m_pHistory[i].m_vRawPosition.z = 0.0f;
 
-		m_pHistory[i].m_vTrend.w = 0.0f;
-		m_pHistory[i].m_vTrend.x = 0.0f;
-		m_pHistory[i].m_vTrend.y = 0.0f;
-		m_pHistory[i].m_vTrend.z = 0.0f;
+		//m_pHistory[i].m_vTrend.w = 0.0f;
+		//m_pHistory[i].m_vTrend.x = 0.0f;
+		//m_pHistory[i].m_vTrend.y = 0.0f;
+		//m_pHistory[i].m_vTrend.z = 0.0f;
 
 		m_pHistory[i].m_dwFrameCount = 0;
+		m_pHistory[i].wasFiltered = true;
 	}
 }
 
@@ -67,9 +71,9 @@ void KinectJointFilter::UpdateFilter(IBody* pBody)
 	}
 
 	// Check for divide by zero. Use an epsilon of a 10th of a millimeter
-	m_fJitterRadius = max(0.0001f, m_fJitterRadius);
+	//m_fJitterRadius = max(0.0001f, m_fJitterRadius);
 
-	TRANSFORM_SMOOTH_PARAMETERS SmoothingParams;
+	//TRANSFORM_SMOOTH_PARAMETERS SmoothingParams;
 
 	Joint joints[JointType_Count];
 
@@ -77,21 +81,21 @@ void KinectJointFilter::UpdateFilter(IBody* pBody)
 
 	for (JointType jt = JointType_SpineBase; jt <= JointType_ThumbRight; jt=(JointType)(jt+1))
 	{
-		SmoothingParams.fSmoothing = m_fSmoothing;
+		/*SmoothingParams.fSmoothing = m_fSmoothing;
 		SmoothingParams.fCorrection = m_fCorrection;
 		SmoothingParams.fPrediction = m_fPrediction;
 		SmoothingParams.fJitterRadius = m_fJitterRadius;
-		SmoothingParams.fMaxDeviationRadius = m_fMaxDeviationRadius;
+		SmoothingParams.fMaxDeviationRadius = m_fMaxDeviationRadius;*/
 
 		// If inferred, we smooth a bit more by using a bigger jitter radius
 		Joint joint = joints[(int)jt];
-		if (joint.TrackingState == TrackingState_Inferred)
+		/*if (joint.TrackingState == TrackingState_Inferred)
 		{
 			SmoothingParams.fJitterRadius *= 2.0f;
 			SmoothingParams.fMaxDeviationRadius *= 2.0f;
-		}
-
-		UpdateJoint(pBody, jt, SmoothingParams);
+		}*/
+		UpdateJoint(pBody, jt);
+		//UpdateJoint(pBody, jt, SmoothingParams);
 	}
 }
 
@@ -168,18 +172,25 @@ float KinectJointFilter::CSVectorLength(Vector4 p)
 	return sqrt(p.w *p.w + p.x * p.x + p.y * p.y + p.z * p.z);
 }
 
-void KinectJointFilter::UpdateJoint(IBody* pBody, JointType jt, TRANSFORM_SMOOTH_PARAMETERS smoothingParams)
+double KinectJointFilter::CSVectorScalarProduct(Vector4 p1, Vector4 p2) {
+	double result = p1.w*p2.w + p1.x*p2.x + p1.y* p2.y + p1.z * p2.z;
+	return result;
+}
+
+//void KinectJointFilter::UpdateJoint(IBody* pBody, JointType jt, TRANSFORM_SMOOTH_PARAMETERS smoothingParams)
+void KinectJointFilter::UpdateJoint(IBody* pBody, JointType jt)
 {
 	Vector4 vPrevRawPosition;
 	Vector4 vPrevFilteredPosition;
-	Vector4 vPrevTrend;
 	Vector4 vRawPosition;
 	Vector4 vFilteredPosition;
-	Vector4 vPredictedPosition;
-	Vector4 vDiff;
-	Vector4 vTrend;
-	float fDiff;
-	bool bJointIsValid;
+	
+	//Vector4 vPredictedPosition;
+	//Vector4 vPrevTrend;
+	//Vector4 vDiff;
+	//Vector4 vTrend;
+	//float fDiff;
+	//bool bJointIsValid;
 	
 	Joint joints[JointType_Count];
 	HRESULT hr = pBody->GetJoints(_countof(joints), joints);
@@ -191,75 +202,94 @@ void KinectJointFilter::UpdateJoint(IBody* pBody, JointType jt, TRANSFORM_SMOOTH
 
 	vRawPosition = jointsOrientation[(int)jt].Orientation;
 	vPrevFilteredPosition = m_pHistory[(int)jt].m_vFilteredPosition;
-	vPrevTrend = m_pHistory[(int)jt].m_vTrend;
+	//vPrevTrend = m_pHistory[(int)jt].m_vTrend;
 	vPrevRawPosition = m_pHistory[(int)jt].m_vRawPosition;
-	bJointIsValid = JointPositionIsValid(vRawPosition);
+	//bJointIsValid = JointPositionIsValid(vRawPosition);
 
-	// If joint is invalid, reset the filter
-	if (!bJointIsValid)
-	{
-		m_pHistory[(int)jt].m_dwFrameCount = 0;
-	}
+	//// If joint is invalid, reset the filter
+	//if (!bJointIsValid)
+	//{
+	//	m_pHistory[(int)jt].m_dwFrameCount = 0;
+	//}
 
 	// Initial start values
 	if (m_pHistory[(int)jt].m_dwFrameCount == 0)
 	{
 		vFilteredPosition = vRawPosition;
-		vTrend = CSVectorZero();
+		//vTrend = CSVectorZero();
 		m_pHistory[(int)jt].m_dwFrameCount++;
 	}
-	else if (m_pHistory[(int)jt].m_dwFrameCount == 1)
+	else //if (m_pHistory[(int)jt].m_dwFrameCount == 1)
 	{
-		vFilteredPosition = CSVectorScale(CSVectorAdd(vRawPosition, vPrevRawPosition), 0.5f);
-		vDiff = CSVectorSubtract(vFilteredPosition, vPrevFilteredPosition);
-		vTrend = CSVectorAdd(CSVectorScale(vDiff, smoothingParams.fCorrection), CSVectorScale(vPrevTrend, 1.0f - smoothingParams.fCorrection));
-		m_pHistory[(int)jt].m_dwFrameCount++;
-	}
-	else
-	{
-		// First apply jitter filter
-		vDiff = CSVectorSubtract(vRawPosition, vPrevFilteredPosition);
-		fDiff = CSVectorLength(vDiff);
-
-		if (fDiff <= smoothingParams.fJitterRadius)
-		{
-			vFilteredPosition = CSVectorAdd(CSVectorScale(vRawPosition, fDiff / smoothingParams.fJitterRadius),
-				CSVectorScale(vPrevFilteredPosition, 1.0f - fDiff / smoothingParams.fJitterRadius));
+		Vector4 prevCorrectQuaternion;
+		if (m_pHistory[(int)jt].wasFiltered) {
+			prevCorrectQuaternion = vPrevFilteredPosition;
 		}
-		else
-		{
-			vFilteredPosition = vRawPosition;
+		else {
+			prevCorrectQuaternion = vPrevRawPosition;
 		}
-
-		// Now the double exponential smoothing filter
-		vFilteredPosition = CSVectorAdd(CSVectorScale(vFilteredPosition, 1.0f - smoothingParams.fSmoothing),
-			CSVectorScale(CSVectorAdd(vPrevFilteredPosition, vPrevTrend), smoothingParams.fSmoothing));
-
-
-		vDiff = CSVectorSubtract(vFilteredPosition, vPrevFilteredPosition);
-		vTrend = CSVectorAdd(CSVectorScale(vDiff, smoothingParams.fCorrection), CSVectorScale(vPrevTrend, 1.0f - smoothingParams.fCorrection));
+		double cosTheta = CSVectorScalarProduct(vRawPosition, prevCorrectQuaternion);
+		double theta = acos(cosTheta);
+		double scale;
+		if ((double)(theta/M_PI - (int)theta/M_PI) == 0.0) { //theta is a multiple of M_PI -> sin(theta)=0
+			scale = 1 / 2;
+		}
+		else {
+			scale = sin(theta / 2) / sin(theta);
+		}
+		vFilteredPosition = CSVectorAdd(CSVectorScale(vRawPosition, scale), CSVectorScale(prevCorrectQuaternion, scale));
+		//vFilteredPosition = CSVectorScale(CSVectorAdd(vRawPosition, vPrevRawPosition), 0.5f);
+		//vDiff = CSVectorSubtract(vFilteredPosition, vPrevFilteredPosition);
+		//vTrend = CSVectorAdd(CSVectorScale(vDiff, smoothingParams.fCorrection), CSVectorScale(vPrevTrend, 1.0f - smoothingParams.fCorrection));
+		//m_pHistory[(int)jt].m_dwFrameCount++;
 	}
+	//else
+	//{
+	//	// First apply jitter filter
+	//	vDiff = CSVectorSubtract(vRawPosition, vPrevFilteredPosition);
+	//	fDiff = CSVectorLength(vDiff);
 
-	// Predict into the future to reduce latency
-	vPredictedPosition = CSVectorAdd(vFilteredPosition, CSVectorScale(vTrend, smoothingParams.fPrediction));
+	//	if (fDiff <= smoothingParams.fJitterRadius)
+	//	{
+	//		vFilteredPosition = CSVectorAdd(CSVectorScale(vRawPosition, fDiff / smoothingParams.fJitterRadius),
+	//			CSVectorScale(vPrevFilteredPosition, 1.0f - fDiff / smoothingParams.fJitterRadius));
+	//	}
+	//	else
+	//	{
+	//		vFilteredPosition = vRawPosition;
+	//	}
 
-	// Check that we are not too far away from raw data
-	vDiff = CSVectorSubtract(vPredictedPosition, vRawPosition);
-	fDiff = CSVectorLength(vDiff);
+	//	// Now the double exponential smoothing filter
+	//	vFilteredPosition = CSVectorAdd(CSVectorScale(vFilteredPosition, 1.0f - smoothingParams.fSmoothing),
+	//		CSVectorScale(CSVectorAdd(vPrevFilteredPosition, vPrevTrend), smoothingParams.fSmoothing));
 
-	if (fDiff > smoothingParams.fMaxDeviationRadius)
-	{
-		vPredictedPosition = CSVectorAdd(CSVectorScale(vPredictedPosition, smoothingParams.fMaxDeviationRadius / fDiff),
-			CSVectorScale(vRawPosition, 1.0f - smoothingParams.fMaxDeviationRadius / fDiff));
-	}
+
+	//	vDiff = CSVectorSubtract(vFilteredPosition, vPrevFilteredPosition);
+	//	vTrend = CSVectorAdd(CSVectorScale(vDiff, smoothingParams.fCorrection), CSVectorScale(vPrevTrend, 1.0f - smoothingParams.fCorrection));
+	//}
+
+	//// Predict into the future to reduce latency
+	//vPredictedPosition = CSVectorAdd(vFilteredPosition, CSVectorScale(vTrend, smoothingParams.fPrediction));
+
+	//// Check that we are not too far away from raw data
+	//vDiff = CSVectorSubtract(vPredictedPosition, vRawPosition);
+	//fDiff = CSVectorLength(vDiff);
+
+	//if (fDiff > smoothingParams.fMaxDeviationRadius)
+	//{
+	//	vPredictedPosition = CSVectorAdd(CSVectorScale(vPredictedPosition, smoothingParams.fMaxDeviationRadius / fDiff),
+	//		CSVectorScale(vRawPosition, 1.0f - smoothingParams.fMaxDeviationRadius / fDiff));
+	//}
 
 	// Save the data from this frame
 	m_pHistory[(int)jt].m_vRawPosition = vRawPosition;
 	m_pHistory[(int)jt].m_vFilteredPosition = vFilteredPosition;
-	m_pHistory[(int)jt].m_vTrend = vTrend;
+	m_pHistory[(int)jt].wasFiltered = (joints[(int)jt].TrackingState != TrackingState_Tracked);
+	//m_pHistory[(int)jt].m_vTrend = vTrend;
 
 	// Output the data
-	m_pFilteredJoints[(int)jt] = vPredictedPosition;
+	m_pFilteredJoints[(int)jt] = vFilteredPosition;
+	//m_pFilteredJoints[(int)jt] = vPredictedPosition;
 }
 
 
