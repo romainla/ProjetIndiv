@@ -8,6 +8,7 @@
 
 #include "resource.h"
 #include "myBVH.h"
+#include "myAngleFile.h"
 #include "common.h"
 
 class CBodyBasics
@@ -82,7 +83,7 @@ private:
     ID2D1SolidColorBrush*   m_pBrushHandLasso;
 
 	myBVH m_myBVH;
-
+	myAngleFile m_myAngleFile;
     /// <summary>
     /// Main processing function
     /// </summary>

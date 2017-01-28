@@ -71,6 +71,7 @@ CBodyBasics::CBodyBasics() :
     }
 	
 	m_myBVH = myBVH(NAME_EX);
+	m_myAngleFile = myAngleFile(NAME_EX);
 }
   
 
@@ -98,7 +99,7 @@ CBodyBasics::~CBodyBasics()
 
     SafeRelease(m_pKinectSensor);
 
-	m_myBVH.saveAndCloseBvhFile(EXERCISE);
+	m_myBVH.saveAndClose(EXERCISE);
 	
 }
 
@@ -355,7 +356,7 @@ void CBodyBasics::ProcessBody(INT64 nTime, int nBodyCount, IBody** ppBodies)
                     if (SUCCEEDED(hr) && bTracked)
                     {
 						
-						m_myBVH.updateBvhFile(pBody,EXERCISE,fps);
+						m_myBVH.update(pBody,EXERCISE,fps);
 						
                         Joint joints[JointType_Count]; 
                         D2D1_POINT_2F jointPoints[JointType_Count];

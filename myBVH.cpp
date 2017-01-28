@@ -40,7 +40,7 @@ myBVH::myBVH(char* filename) {
 	m_initialYawRootZ = 0.0;
 }
 
-void myBVH::createBvhFile(IBody * pBody, typeExercise exercise)
+void myBVH::createFile(IBody * pBody, typeExercise exercise)
 {
 	m_bvhFile = fopen(m_filename, "w");
 	this->writeHierarchy(pBody, exercise);
@@ -269,10 +269,10 @@ void myBVH::writeLeftLeg(Joint* joints, char indexTabulation)
 	this->writeBonesHierarchy(joints, indexTabulation, 4, parents, JointsLeftLeg, labelsLeftLeg);
 }
 
-void myBVH::updateBvhFile(IBody * pBody, typeExercise exercise, double fps) {
+void myBVH::update(IBody * pBody, typeExercise exercise, double fps) {
 	int nbTotalChannels = nbChannels[exercise];
 	if (!m_alreadyCreatedBvh) {
-		this->createBvhFile(pBody, exercise);
+		this->createFile(pBody, exercise);
 		m_bufferFrame[m_nbMinRecorded] = (double**)malloc(nbFrameByRaw * sizeof(double*));
 
 		for (int i = 0; i < nbFrameByRaw; i++)m_bufferFrame[m_nbMinRecorded][i] = (double*)malloc(nbTotalChannels*sizeof(double));
@@ -374,9 +374,9 @@ void myBVH::updateBvhFile(IBody * pBody, typeExercise exercise, double fps) {
 }
 
 //
-void myBVH::saveAndCloseBvhFile(typeExercise exercise)
+void myBVH::saveAndClose(typeExercise exercise)
 {
-	this->saveBvhFile(exercise);
+	this->saveFile(exercise);
 	fclose(m_bvhFile);
 
 	free(m_filename);
@@ -397,7 +397,7 @@ void myBVH::saveAndCloseBvhFile(typeExercise exercise)
 	free(m_bufferFrame);
 }
 
-void myBVH::saveBvhFile(typeExercise exercise) {
+void myBVH::saveFile(typeExercise exercise) {
 	int channels = nbChannels[(int)exercise];
 	fwrite("MOTION\n", strlen("MOTION\n"), 1, m_bvhFile);
 	fwrite("Frames: ", strlen("Frames: "), 1, m_bvhFile);

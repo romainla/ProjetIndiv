@@ -24,7 +24,7 @@ public:
 
 	/// <summary>
 	/// Function to update the information the bvh file. 
-	/// If it has not already been created, the bvh file will be create thanks to createBvhFile.
+	/// If it has not already been created, the bvh file will be create thanks to createFile.
 	/// Otherwise, call storeMotionInformation with the joints corresponding to the exercise
 	///</summary>
 	void update(IBody * pBody, typeExercise exercise, double fps);
@@ -32,7 +32,7 @@ public:
 	/// <summary>
 	/// Function to store the motion information in the dedicated array. 
 	/// The array is recorded in the bvh file when the program is closed thanks to 
-	/// saveAndCloseBvhFile
+	/// saveAndClose
 	///</summary>
 	void storeMotionInformation(IBody * pBody, JointType *listJoints, JointType *listJointsParents, bool *jointsUtils, char nbJoint, int nbTotalChannel);
 

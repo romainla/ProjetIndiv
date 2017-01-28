@@ -33,7 +33,7 @@ public:
 	/// <summary>
 	/// Function to create the bvh file
 	///</summary>
-	void createBvhFile(IBody* ppBodies, typeExercise exercise);
+	void createFile(IBody* ppBodies, typeExercise exercise);
 
 	/// <summary>
 	/// Function to write the hierarchy depending on the exercise in the bvh file
@@ -77,25 +77,25 @@ public:
 
 	/// <summary>
 	/// Function to update the information the bvh file. 
-	/// If it has not already been created, the bvh file will be create thanks to createBvhFile.
+	/// If it has not already been created, the bvh file will be create thanks to createFile.
 	/// Otherwise, call storeMotionInformation with the joints corresponding to the exercise
 	///</summary>
-	void updateBvhFile(IBody * pBody, typeExercise exercise, double fps);
+	void update(IBody * pBody, typeExercise exercise, double fps);
 	
 	/// <summary>
 	/// Function to store the motion information in the dedicated array. 
 	/// The array is recorded in the bvh file when the program is closed thanks to 
-	/// saveAndCloseBvhFile
+	/// saveAndClose
 	///</summary>
 	void storeMotionInformation(IBody * pBody, JointType *listJoints, JointType *listJointsParents, bool *jointsUtils, char nbJoint, int nbTotalChannel);
 
 	/// <summary>
 	/// Function to save and close the bvh file
 	///</summary>
-	void saveAndCloseBvhFile(typeExercise exercise);
+	void saveAndClose(typeExercise exercise);
 
 	/// <summary>
 	/// Function to save the bvh file
 	///</summary>
-	void saveBvhFile(typeExercise exercise);
+	void saveFile(typeExercise exercise);
 };
