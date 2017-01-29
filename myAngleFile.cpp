@@ -35,9 +35,11 @@ myAngleFile::myAngleFile()
 	m_nbFrame = 0;
 	m_fps = 0.00;
 	m_nbMinRecorded = 0;
-	m_filename = "test.csv";
+	m_filename = (char*)malloc((strlen("test.csv")+1)*sizeof(char));
+	strcpy(m_filename, "test.csv");
 	m_exercise = typeExercise::UPPER_LIMB_RIGHT;
 	m_nbData = nbData[(int)m_exercise];
+	m_bufferFrame = (double***)malloc(nbMinMaxOfRecording * sizeof(double**));
 }
 
 myAngleFile::myAngleFile(char * filename, typeExercise exercise)
@@ -263,20 +265,23 @@ void myAngleFile::storeMotionInformation(IBody * pBody, JointType * listJoints, 
 
 void myAngleFile::saveAndClose()
 {
-	this->saveFile();
-	fclose(m_angleFile);
+	if (m_alreadyCreated) {
+		this->saveFile();
+		fclose(m_angleFile);
 
-	for (int i = 0; i < m_nbMinRecorded + 1; i++) {
-		if (i < m_nbMinRecorded) {
-			for (int j = 0; j < nbFrameByRaw; j++)free(m_bufferFrame[i][j]);
-			free(m_bufferFrame[i]);
-		}
-		else {
-			int limit = m_nbFrame % nbFrameByRaw;
-			for (int j = 0; j < limit; j++)free(m_bufferFrame[i][j]);
-			free(m_bufferFrame[i]);
+		for (int i = 0; i < m_nbMinRecorded + 1; i++) {
+			if (i < m_nbMinRecorded) {
+				for (int j = 0; j < nbFrameByRaw; j++)free(m_bufferFrame[i][j]);
+				free(m_bufferFrame[i]);
+			}
+			else {
+				int limit = m_nbFrame % nbFrameByRaw;
+				for (int j = 0; j < limit; j++)free(m_bufferFrame[i][j]);
+				free(m_bufferFrame[i]);
+			}
 		}
 	}
+	free(m_filename);
 	free(m_bufferFrame);
 }
 

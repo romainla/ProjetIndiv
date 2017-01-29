@@ -15,6 +15,10 @@ myBVH::myBVH()
 	m_initialRollRootX = 0.0;
 	m_initialYawRootZ = 0.0;
 	m_exercise = typeExercise::UPPER_LIMB_RIGHT;
+	char nameStd[] = "bvhFile.bvh";
+	m_filename = (char*)malloc((strlen(nameStd) + 1)*sizeof(char));
+	strcpy(m_filename, nameStd);
+	m_bufferFrame = (double***)malloc(nbMinMaxOfRecording * sizeof(double**));
 }
 
 myBVH::myBVH(char* filename, typeExercise exercise) {
@@ -378,24 +382,27 @@ void myBVH::update(IBody * pBody,  double fps) {
 //
 void myBVH::saveAndClose()
 {
-	this->saveFile();
-	fclose(m_bvhFile);
+	if (m_alreadyCreatedBvh) {
+		this->saveFile();
+		fclose(m_bvhFile);
 
-	free(m_filename);
-	free(m_ref_yaw_orientation);
-	free(m_ref_pitch_orientation);
-	free(m_ref_roll_orientation);
-	for (int i = 0; i < m_nbMinRecorded + 1; i++) {
-		if (i < m_nbMinRecorded) {
-			for (int j = 0; j < nbFrameByRaw; j++)free(m_bufferFrame[i][j]);
-			free(m_bufferFrame[i]);
-		}
-		else {
-			int limit = m_nbFrame % nbFrameByRaw;
-			for (int j = 0; j < limit; j++)free(m_bufferFrame[i][j]);
-			free(m_bufferFrame[i]);
+		free(m_ref_yaw_orientation);
+		free(m_ref_pitch_orientation);
+		free(m_ref_roll_orientation);
+
+		for (int i = 0; i < m_nbMinRecorded + 1; i++) {
+			if (i < m_nbMinRecorded) {
+				for (int j = 0; j < nbFrameByRaw; j++)free(m_bufferFrame[i][j]);
+				free(m_bufferFrame[i]);
+			}
+			else {
+				int limit = m_nbFrame % nbFrameByRaw;
+				for (int j = 0; j < limit; j++)free(m_bufferFrame[i][j]);
+				free(m_bufferFrame[i]);
+			}
 		}
 	}
+	free(m_filename);
 	free(m_bufferFrame);
 }
 
