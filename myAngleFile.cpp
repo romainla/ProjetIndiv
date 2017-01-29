@@ -37,8 +37,8 @@ myAngleFile::myAngleFile()
 	m_nbFrame = 0;
 	m_fps = 0.00;
 	m_nbMinRecorded = 0;
-	m_filename = (char*)malloc((strlen("test.csv")+1)*sizeof(char));
-	strcpy(m_filename, "test.csv");
+	m_filename = (char*)malloc((strlen("CSVandMatlab\\test.csv")+1)*sizeof(char));
+	strcpy(m_filename, "CSVandMatlab\\test.csv");
 	m_exercise = typeExercise::UPPER_LIMB_RIGHT;
 	m_nbData = nbData[(int)m_exercise];
 	m_bufferFrame = (double***)malloc(nbMinMaxOfRecording * sizeof(double**));
@@ -48,7 +48,7 @@ myAngleFile::myAngleFile()
 myAngleFile::myAngleFile(char * filename, typeExercise exercise)
 {
 	std::stringstream filenamestream;
-	filenamestream << filename << ".csv";
+	filenamestream << "CSVandMatlab\\" << filename << ".csv";
 	m_filename = (char*)malloc((strlen(filenamestream.str().c_str()) + 1)*sizeof(char));
 	strcpy(m_filename, filenamestream.str().c_str());
 	m_alreadyCreated = false;
