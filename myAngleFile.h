@@ -3,19 +3,23 @@
 
 class myAngleFile {
 private:
-	FILE* m_angleFile;
-	char* m_filename;
-	bool m_alreadyCreated;
-	double m_fps;
-	int m_nbFrame;
-	double*** m_bufferFrame;
-	int m_nbMinRecorded;
-	KinectJointFilter* m_filterOrientation;
-	myFilterPosition* m_filterPosition;
-	typeExercise m_exercise;
-	int m_nbData;
+	typedef enum{INITIALIZATION, EXERCISE, POST_EXERCISE} phaseExercise; // Enumeration indicating the phase of the exercise which is currently performed
 
-	static const int nbData[4];
+	FILE* m_angleFile; // Pointer towards the output file
+	char* m_filename; // Store the name of the output file
+	bool m_alreadyCreated; // Indicates if the creation of the output file and the memory allocation have already been made
+	double m_fps; // Frame rate
+	int m_nbFrame; // Number of frames which have already been recorded
+	double*** m_bufferFrame; // Buffer containing the data which will be saved
+	int m_nbMinRecorded; // Number of minutes which have already been recorded
+	KinectJointFilter* m_filterOrientation; // Filter for the orientation of the joints
+	myFilterPosition* m_filterPosition; // Filter for the position of the joints
+	typeExercise m_exercise; // Indicates the type of exercise which is currently performed
+	int m_nbData;
+	phaseExercise m_phase; // Enum indicating the phase of the exercise which is currently performed
+	
+	static const int nbData[4]; // Contains the number of data stored for each type of exercise 
+	static const char *labelExercicePhases[]; // Labels indicating the phase of the exercise which is currently performed
 
 	/// <summary>
 	/// Function to compute the scalar product between two position vector

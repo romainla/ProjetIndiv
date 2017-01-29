@@ -1,6 +1,8 @@
 #include "myAngleFile.h"
 
-const int myAngleFile::nbData[4] = {16,16,16,16}; // 2 joints with angle2D, quaternion and the 3 Euler angles, 2 joints withe angle2D, quaternion and Euler angles
+const int myAngleFile::nbData[4] = {18,18,18,18}; // Timestamp of the frame, label telling if it is the exercise, initialization or post-exercise, 2 joints with angle2D, quaternion and the 3 Euler angles, 2 joints withe angle2D, quaternion and Euler angles
+
+const char *myAngleFile::labelExercicePhases[] = { "init","exercise","postExercise" }; // Labels indicating the phase of the exercise which is currently performed
 
 double myAngleFile::scalarProduct(const CameraSpacePoint & p1, const CameraSpacePoint & p2)
 {
@@ -40,6 +42,7 @@ myAngleFile::myAngleFile()
 	m_exercise = typeExercise::UPPER_LIMB_RIGHT;
 	m_nbData = nbData[(int)m_exercise];
 	m_bufferFrame = (double***)malloc(nbMinMaxOfRecording * sizeof(double**));
+	m_phase = phaseExercise::INITIALIZATION;
 }
 
 myAngleFile::myAngleFile(char * filename, typeExercise exercise)
@@ -63,6 +66,7 @@ myAngleFile::myAngleFile(char * filename, typeExercise exercise)
 		m_exercise = exercise;
 	}
 	m_nbData = nbData[(int)m_exercise];
+	m_phase = phaseExercise::INITIALIZATION;
 }
 
 void myAngleFile::createFile(IBody * ppBodies)
@@ -173,6 +177,14 @@ void myAngleFile::storeMotionInformation(IBody * pBody, JointType * listJoints, 
 	HRESULT hr = pBody->GetJoints(_countof(joints), joints);
 
 	char index = 0;
+
+	// Save the timestamp of the frame in the first column of the buffer
+	m_bufferFrame[m_nbMinRecorded][m_nbFrame][index] = m_nbFrame / m_fps;
+	index++;
+
+	// Save the phase of exercise of the frame in the first column of the buffer
+	m_bufferFrame[m_nbMinRecorded][m_nbFrame][index] = (double)m_phase;
+	index++;
 
 	for (int i = 0; i < nbJoint - 1; i++) { // nbChannels-1 because the last one is used only for computing the angles
 		JointOrientation orientation = jointsOrientation[listJoints[i]];
@@ -294,10 +306,9 @@ void myAngleFile::saveFile()
 	nbFrameString << m_nbFrame << "\n";
 	std::string nbFrameChar = nbFrameString.str();
 	fwrite(nbFrameChar.c_str(), strlen(nbFrameChar.c_str()), 1, m_angleFile);
-	fwrite("Frame Time: ", strlen("Frame Time: "), 1, m_angleFile);
-	double frameTime = 1 / m_fps;
+	fwrite("Frame rate: ", strlen("Frame rate: "), 1, m_angleFile);
 	std::stringstream frameTimeString;
-	frameTimeString << frameTime << "\n";
+	frameTimeString << m_fps << "\n";
 	std::string frameTimeChar = frameTimeString.str();
 	fwrite(frameTimeChar.c_str(), strlen(frameTimeChar.c_str()), 1, m_angleFile);
 	writeNameColumns();
@@ -305,7 +316,12 @@ void myAngleFile::saveFile()
 		std::stringstream raw;
 		std::string rawChar;
 		for (int j = 0; j < channels; j++) {
-			raw << m_bufferFrame[i / nbFrameByRaw][i%nbFrameByRaw][j] << " ";
+			if (j == 1) {
+				raw << labelExercicePhases[(int)m_bufferFrame[i / nbFrameByRaw][i%nbFrameByRaw][j]] << " ";
+			}
+			else {
+				raw << m_bufferFrame[i / nbFrameByRaw][i%nbFrameByRaw][j] << " ";
+			}
 		}
 		raw << "\n";
 		rawChar = raw.str();
@@ -318,8 +334,8 @@ void myAngleFile::writeNameColumns()
 {
 	char **nameColumns;
 	int nbColumns = m_nbData;
-	char *nameLower[] = { "angle2D_Knee","quaternion_W_Knee","quaternion_X_Knee" ,"quaternion_Y_Knee" ,"quaternion_Z_Knee", "Yaw_Knee", "Pitch_Knee", "Roll_Knee","angle2D_Ankle","quaternion_W_Ankle","quaternion_X_Ankle" ,"quaternion_Y_Ankle" ,"quaternion_Z_Ankle", "Yaw_Ankle", "Pitch_Ankle", "Roll_Ankle" };
-	char *nameUpper[] = { "angle2D_Elbow","quaternion_W_Elbow","quaternion_X_Elbow" ,"quaternion_Y_Elbow" ,"quaternion_Z_Elbow", "Yaw_Elbow", "Pitch_Elbow", "Roll_Elbow","angle2D_Wrist","quaternion_W_Wrist","quaternion_X_Wrist" ,"quaternion_Y_Wrist" ,"quaternion_Z_Wrist", "Yaw_Wrist", "Pitch_Wrist", "Roll_Wrist" };
+	char *nameLower[] = { "TimeStamp","PhaseOfExercise","angle2D_Knee","quaternion_W_Knee","quaternion_X_Knee" ,"quaternion_Y_Knee" ,"quaternion_Z_Knee", "Yaw_Knee", "Pitch_Knee", "Roll_Knee","angle2D_Ankle","quaternion_W_Ankle","quaternion_X_Ankle" ,"quaternion_Y_Ankle" ,"quaternion_Z_Ankle", "Yaw_Ankle", "Pitch_Ankle", "Roll_Ankle" };
+	char *nameUpper[] = { "TimeStamp","PhaseOfExercise","angle2D_Elbow","quaternion_W_Elbow","quaternion_X_Elbow" ,"quaternion_Y_Elbow" ,"quaternion_Z_Elbow", "Yaw_Elbow", "Pitch_Elbow", "Roll_Elbow","angle2D_Wrist","quaternion_W_Wrist","quaternion_X_Wrist" ,"quaternion_Y_Wrist" ,"quaternion_Z_Wrist", "Yaw_Wrist", "Pitch_Wrist", "Roll_Wrist" };
 	switch (m_exercise) {
 	case typeExercise::LOWER_LIMB_LEFT:
 	case typeExercise::LOWER_LIMB_RIGHT:
