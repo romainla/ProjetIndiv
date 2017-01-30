@@ -28,18 +28,12 @@ switch button
     case 'No',
 end
 
-if exist(refFileName,'file')
-    refFile = fopen(refFileName, 'r');
-else
-    error('Sorry the desired reference file could not be found. Check if the path, name and extension were correct before to relaunch this script');
-end
+[refFile, exerciseFile] = openCSV(refFileName, exerciseFileName);
 
-if exist(refFileName,'file')
-    exerciseFile = fopen(exerciseFileName, 'r');
-else
-    error('Sorry the desired exercice file could not be found. Check if the path, name and extension were correct before to relaunch this script');
-end
+%% Creating objects containing the data of only one phase of exercise each
+[refInit] = keepOnlyOnePhase(refFile, 'init');
+[exerciseInit] = keepOnlyOnePhase(exerciseFile, 'init');
 
-var
-
+%% Plots of the reference signal and the exercise signal over time for different types of signal
+plotSignal(refInit.(refInit.NameColumns{3}),refInit.TimeStamp, exerciseInit.(exerciseInit.NameColumns{3}),exerciseInit.TimeStamp,refInit.NameColumns{3});
 
