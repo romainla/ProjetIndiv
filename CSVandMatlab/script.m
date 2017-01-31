@@ -1,6 +1,6 @@
 %% General parameters
 refFileName = 'reference.csv';
-exerciseFileName = 'whole_right_abs.csv';
+exerciseFileName = 'drinking_unhealthy.csv';
 
 %% Opening the files
 button = questdlg(strcat('The current name of the reference file is: "',refFileName, '" do you want to change it ?'),'Change reference file','Yes','No','No');
@@ -34,6 +34,12 @@ end
 [refInit] = keepOnlyOnePhase(refFile, 'init');
 [exerciseInit] = keepOnlyOnePhase(exerciseFile, 'init');
 
+[refExercise] = keepOnlyOnePhase(refFile, 'exercise');
+[exerciseExercise] = keepOnlyOnePhase(exerciseFile, 'exercise');
+
 %% Plots of the reference signal and the exercise signal over time for different types of signal
 plotSignal(refInit.(refInit.NameColumns{3}),refInit.TimeStamp, exerciseInit.(exerciseInit.NameColumns{3}),exerciseInit.TimeStamp,refInit.NameColumns{3});
+
+plotSignal(refExercise.(refExercise.NameColumns{3}),refExercise.TimeStamp, exerciseExercise.(exerciseExercise.NameColumns{3}),exerciseExercise.TimeStamp,exerciseExercise.NameColumns{3});
+
 

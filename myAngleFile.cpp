@@ -83,7 +83,7 @@ void myAngleFile::createFile(IBody * ppBodies)
 
 }
 
-void myAngleFile::update(IBody * pBody, double fps)
+void myAngleFile::update(IBody * pBody, double fps, phaseExercise exercise)
 {
 	int nbTotalChannels = nbChannels[m_exercise];
 	if (!m_alreadyCreated) {
@@ -92,6 +92,8 @@ void myAngleFile::update(IBody * pBody, double fps)
 
 		for (int i = 0; i < nbFrameByRaw; i++)m_bufferFrame[m_nbMinRecorded][i] = (double*)malloc(nbTotalChannels*sizeof(double));
 	}
+
+	m_phase = exercise;
 
 	if (m_nbFrame >= 1) {
 		m_fps = (m_fps + (double)(1 / m_nbFrame)*fps) / ((double)(1 / m_nbFrame) + 1.0);
@@ -183,7 +185,7 @@ void myAngleFile::storeMotionInformation(IBody * pBody, JointType * listJoints, 
 	index++;
 
 	// Save the phase of exercise of the frame in the first column of the buffer
-	m_bufferFrame[m_nbMinRecorded][m_nbFrame][index] = (double)m_phase;
+	m_bufferFrame[m_nbMinRecorded][m_nbFrame][index] = (int)m_phase;
 	index++;
 
 	for (int i = 0; i < nbJoint - 1; i++) { // nbChannels-1 because the last one is used only for computing the angles

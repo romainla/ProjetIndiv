@@ -58,8 +58,8 @@ CBodyBasics::CBodyBasics() :
     m_pRenderTarget(NULL),
     m_pBrushJointTracked(NULL),
     m_pBrushJointInferred(NULL),
-    m_pBrushBoneTracked(NULL),
-    m_pBrushBoneInferred(NULL),
+	m_pBrushBoneTracked{NULL, NULL, NULL },
+    m_pBrushBoneInferred{NULL, NULL, NULL},
     m_pBrushHandClosed(NULL),
     m_pBrushHandOpen(NULL),
     m_pBrushHandLasso(NULL)
@@ -153,7 +153,7 @@ int CBodyBasics::Run(HINSTANCE hInstance, int nCmdShow)
             }
 
             TranslateMessage(&msg);
-            DispatchMessageW(&msg);
+			DispatchMessageW(&msg);
         }
     }
 
@@ -270,6 +270,7 @@ LRESULT CALLBACK CBodyBasics::DlgProc(HWND hWnd, UINT message, WPARAM wParam, LP
             // Quit the main message pump
             PostQuitMessage(0);
             break;
+
     }
 
     return FALSE;
@@ -331,6 +332,11 @@ HRESULT CBodyBasics::InitializeDefaultSensor()
 /// </summary>
 void CBodyBasics::ProcessBody(INT64 nTime, int nBodyCount, IBody** ppBodies)
 {
+	if (GetAsyncKeyState(VK_SPACE))
+	{
+		currentPhase = (phaseExercise)((int)(currentPhase + 1) % (int)phaseExercise::COUNT);
+	}
+
 	static double fps = 0.0;
     if (m_hWnd)
     {
@@ -358,7 +364,7 @@ void CBodyBasics::ProcessBody(INT64 nTime, int nBodyCount, IBody** ppBodies)
                     {
 						
 						m_myBVH.update(pBody,fps);
-						m_myAngleFile.update(pBody, fps);
+						m_myAngleFile.update(pBody, fps, currentPhase);
 						
                         Joint joints[JointType_Count]; 
                         D2D1_POINT_2F jointPoints[JointType_Count];
@@ -485,8 +491,14 @@ HRESULT CBodyBasics::EnsureDirect2DResources()
         m_pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(0.27f, 0.75f, 0.27f), &m_pBrushJointTracked);
 
         m_pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Yellow, 1.0f), &m_pBrushJointInferred);
-        m_pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Green, 1.0f), &m_pBrushBoneTracked);
-        m_pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Gray, 1.0f), &m_pBrushBoneInferred);
+
+		m_pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::LightGreen, 1.0f), &(m_pBrushBoneTracked[(int)phaseExercise::INITIALIZATION]));
+		m_pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Green, 1.0f), &(m_pBrushBoneTracked[(int)phaseExercise::ACTIVE]));
+		m_pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::DarkGreen, 1.0f), &(m_pBrushBoneTracked[(int)phaseExercise::POST_EXERCISE]));
+
+		m_pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::LightGray, 1.0f), &(m_pBrushBoneInferred[(int)phaseExercise::INITIALIZATION]));
+		m_pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Gray, 1.0f), &(m_pBrushBoneInferred[(int)phaseExercise::ACTIVE]));
+		m_pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::DarkGray, 1.0f), &(m_pBrushBoneInferred[(int)phaseExercise::POST_EXERCISE]));
 
         m_pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Red, 0.5f), &m_pBrushHandClosed);
         m_pRenderTarget->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Green, 0.5f), &m_pBrushHandOpen);
@@ -505,8 +517,12 @@ void CBodyBasics::DiscardDirect2DResources()
 
     SafeRelease(m_pBrushJointTracked);
     SafeRelease(m_pBrushJointInferred);
-    SafeRelease(m_pBrushBoneTracked);
-    SafeRelease(m_pBrushBoneInferred);
+    SafeRelease(m_pBrushBoneTracked[0]);
+	SafeRelease(m_pBrushBoneTracked[1]);
+	SafeRelease(m_pBrushBoneTracked[2]);
+    SafeRelease(m_pBrushBoneInferred[0]);
+	SafeRelease(m_pBrushBoneInferred[1]);
+	SafeRelease(m_pBrushBoneInferred[2]);
 
     SafeRelease(m_pBrushHandClosed);
     SafeRelease(m_pBrushHandOpen);
@@ -619,11 +635,11 @@ void CBodyBasics::DrawBone(const Joint* pJoints, const D2D1_POINT_2F* pJointPoin
     // We assume all drawn bones are inferred unless BOTH joints are tracked
     if ((joint0State == TrackingState_Tracked) && (joint1State == TrackingState_Tracked))
     {
-        m_pRenderTarget->DrawLine(pJointPoints[joint0], pJointPoints[joint1], m_pBrushBoneTracked, c_TrackedBoneThickness);
+        m_pRenderTarget->DrawLine(pJointPoints[joint0], pJointPoints[joint1], m_pBrushBoneTracked[(int)currentPhase], c_TrackedBoneThickness);
     }
     else
     {
-        m_pRenderTarget->DrawLine(pJointPoints[joint0], pJointPoints[joint1], m_pBrushBoneInferred, c_InferredBoneThickness);
+        m_pRenderTarget->DrawLine(pJointPoints[joint0], pJointPoints[joint1], m_pBrushBoneInferred[(int)currentPhase], c_InferredBoneThickness);
     }
 }
 

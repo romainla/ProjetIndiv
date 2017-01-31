@@ -3,8 +3,6 @@
 
 class myAngleFile {
 private:
-	typedef enum{INITIALIZATION, EXERCISE, POST_EXERCISE} phaseExercise; // Enumeration indicating the phase of the exercise which is currently performed
-
 	FILE* m_angleFile; // Pointer towards the output file
 	char* m_filename; // Store the name of the output file
 	bool m_alreadyCreated; // Indicates if the creation of the output file and the memory allocation have already been made
@@ -16,8 +14,7 @@ private:
 	myFilterPosition* m_filterPosition; // Filter for the position of the joints
 	typeExercise m_exercise; // Indicates the type of exercise which is currently performed
 	int m_nbData;
-	phaseExercise m_phase; // Enum indicating the phase of the exercise which is currently performed
-	
+	phaseExercise m_phase; // Current phase of the exercise
 	static const int nbData[4]; // Contains the number of data stored for each type of exercise 
 	static const char *labelExercicePhases[]; // Labels indicating the phase of the exercise which is currently performed
 
@@ -56,7 +53,7 @@ public:
 	/// If it has not already been created, the angle file will be create thanks to createFile.
 	/// Otherwise, call storeMotionInformation with the joints corresponding to the exercise
 	///</summary>
-	void update(IBody * pBody, double fps);
+	void update(IBody * pBody, double fps, phaseExercise exercise);
 
 	/// <summary>
 	/// Function to store the motion information in the dedicated array. 

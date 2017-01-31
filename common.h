@@ -9,6 +9,7 @@
 #include "myFilterOrientation.h"
 #include "myFilterPosition.h"
 
+// Enumeration indicating which type of exercise is currently performed
 typedef enum typeExercise {
 	UPPER_LIMB_RIGHT = 0,
 	UPPER_LIMB_LEFT = 1,
@@ -18,6 +19,15 @@ typedef enum typeExercise {
 	WHOLE_BODY_LEFT = 5
 }typeExercise;
 
+// Enumeration indicating the phase of the exercise which is currently performed
+typedef enum phaseExercise {
+	INITIALIZATION = 0,
+	ACTIVE = 1, 
+	POST_EXERCISE = 2,
+	COUNT = 3
+} phaseExercise; 
+
+static phaseExercise currentPhase = phaseExercise::INITIALIZATION;
 
 #define YPR 0
 #define YRP 1

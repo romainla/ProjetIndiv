@@ -76,8 +76,8 @@ private:
     ID2D1HwndRenderTarget*  m_pRenderTarget;
     ID2D1SolidColorBrush*   m_pBrushJointTracked;
     ID2D1SolidColorBrush*   m_pBrushJointInferred;
-    ID2D1SolidColorBrush*   m_pBrushBoneTracked;
-    ID2D1SolidColorBrush*   m_pBrushBoneInferred;
+    ID2D1SolidColorBrush*   m_pBrushBoneTracked[3];
+    ID2D1SolidColorBrush*   m_pBrushBoneInferred[3];
     ID2D1SolidColorBrush*   m_pBrushHandClosed;
     ID2D1SolidColorBrush*   m_pBrushHandOpen;
     ID2D1SolidColorBrush*   m_pBrushHandLasso;
