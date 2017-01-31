@@ -332,9 +332,20 @@ HRESULT CBodyBasics::InitializeDefaultSensor()
 /// </summary>
 void CBodyBasics::ProcessBody(INT64 nTime, int nBodyCount, IBody** ppBodies)
 {
+	static bool keyPressed = false;
+	static bool keyReleased = true;
 	if (GetAsyncKeyState(VK_SPACE))
 	{
+		keyPressed = true;
+	}
+	else {
+		keyPressed = false;
+		keyReleased = true;
+	}
+
+	if (keyPressed && keyReleased) {
 		currentPhase = (phaseExercise)((int)(currentPhase + 1) % (int)phaseExercise::COUNT);
+		keyReleased = false;
 	}
 
 	static double fps = 0.0;
