@@ -14,12 +14,7 @@
 
 class CBodyBasics
 {
-    static const int        cDepthWidth  = 512;
-    static const int        cDepthHeight = 424;
-
-	static const int        cColorWidth = 1920;
-	static const int        cColorHeight = 1080;
-
+    
 public:
     /// <summary>
     /// Constructor
@@ -79,20 +74,7 @@ private:
 
 	
     // Direct2D
-    ID2D1Factory*           m_pD2DFactory;
 	ImageRenderer*          m_pDrawCoordinateMapping;
-	RGBQUAD*                m_pOutputRGBX;
-	RGBQUAD*                m_pColorRGBX;
-
-    // Body/hand drawing
-    ID2D1HwndRenderTarget*  m_pRenderTarget;
-    ID2D1SolidColorBrush*   m_pBrushJointTracked;
-    ID2D1SolidColorBrush*   m_pBrushJointInferred;
-    ID2D1SolidColorBrush*   m_pBrushBoneTracked[3];
-    ID2D1SolidColorBrush*   m_pBrushBoneInferred[3];
-    ID2D1SolidColorBrush*   m_pBrushHandClosed;
-    ID2D1SolidColorBrush*   m_pBrushHandOpen;
-    ID2D1SolidColorBrush*   m_pBrushHandLasso;
 
 	myBVH m_myBVH;
 	myAngleFile m_myAngleFile;
@@ -106,24 +88,7 @@ private:
 	/// </summary>
 	void drawMeshRendering();
 
-	/// <summary>
-	/// Handle new depth and color data
-	/// <param name="nTime">timestamp of frame</param>
-	/// <param name="pDepthBuffer">pointer to depth frame data</param>
-	/// <param name="nDepthWidth">width (in pixels) of input depth image data</param>
-	/// <param name="nDepthHeight">height (in pixels) of input depth image data</param>
-	/// <param name="pColorBuffer">pointer to color frame data</param>
-	/// <param name="nColorWidth">width (in pixels) of input color image data</param>
-	/// <param name="nColorHeight">height (in pixels) of input color image data</param>
-	/// <param name="pBodyIndexBuffer">pointer to body index frame data</param>
-	/// <param name="nBodyIndexWidth">width (in pixels) of input body index data</param>
-	/// <param name="nBodyIndexHeight">height (in pixels) of input body index data</param>
-	/// </summary>
-	void                    ProcessFrame(INT64 nTime,
-		const UINT16* pDepthBuffer, int nDepthHeight, int nDepthWidth,
-		int nColorWidth, int nColorHeight,
-		const BYTE* pBodyIndexBuffer, int nBodyIndexWidth, int nBodyIndexHeight);
-
+	
     /// <summary>
     /// Initializes the default Kinect sensor
     /// </summary>
@@ -146,48 +111,15 @@ private:
     /// <param name="bForce">force status update</param>
     bool                    SetStatusMessage(_In_z_ WCHAR* szMessage, DWORD nShowTimeMsec, bool bForce);
 
-    /// <summary>
-    /// Ensure necessary Direct2d resources are created
-    /// </summary>
-    /// <returns>S_OK if successful, otherwise an error code</returns>
-    HRESULT EnsureDirect2DResources();
+	/// <summary>
+	/// Converts a body point to screen space
+	/// </summary>
+	/// <param name="bodyPoint">body point to tranform</param>
+	/// <param name="width">width (in pixels) of output buffer</param>
+	/// <param name="height">height (in pixels) of output buffer</param>
+	/// <returns>point in screen-space</returns>
+	D2D1_POINT_2F           BodyToScreen(const CameraSpacePoint& bodyPoint, int width, int height);
 
-    /// <summary>
-    /// Dispose Direct2d resources 
-    /// </summary>
-    void DiscardDirect2DResources();
 
-    /// <summary>
-    /// Converts a body point to screen space
-    /// </summary>
-    /// <param name="bodyPoint">body point to tranform</param>
-    /// <param name="width">width (in pixels) of output buffer</param>
-    /// <param name="height">height (in pixels) of output buffer</param>
-    /// <returns>point in screen-space</returns>
-    D2D1_POINT_2F           BodyToScreen(const CameraSpacePoint& bodyPoint, int width, int height);
-
-    /// <summary>
-    /// Draws a body 
-    /// </summary>
-    /// <param name="pJoints">joint data</param>
-    /// <param name="pJointPoints">joint positions converted to screen space</param>
-    void                    DrawBody(const Joint* pJoints, const D2D1_POINT_2F* pJointPoints);
-
-    /// <summary>
-    /// Draws a hand symbol if the hand is tracked: red circle = closed, green circle = opened; blue circle = lasso
-    /// </summary>
-    /// <param name="handState">state of the hand</param>
-    /// <param name="handPosition">position of the hand</param>
-    void                    DrawHand(HandState handState, const D2D1_POINT_2F& handPosition);
-
-    /// <summary>
-    /// Draws one bone of a body (joint to joint)
-    /// </summary>
-    /// <param name="pJoints">joint data</param>
-    /// <param name="pJointPoints">joint positions converted to screen space</param>
-    /// <param name="pJointPoints">joint positions converted to screen space</param>
-    /// <param name="joint0">one joint of the bone to draw</param>
-    /// <param name="joint1">other joint of the bone to draw</param>
-    void                    DrawBone(const Joint* pJoints, const D2D1_POINT_2F* pJointPoints, JointType joint0, JointType joint1);
 };
 

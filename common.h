@@ -38,6 +38,11 @@ static const char* labelsChannels[] = { "Xposition","Yposition","Zposition","Zro
 static const char* labelsChannels[] = { "Xposition","Yposition","Zposition","Zrotation","Yrotation","Xrotation" };
 #endif
 
+//Graphic constants
+static const int        cDepthWidth = 512;
+static const int        cDepthHeight = 424;
+static const int        cColorWidth = 1920;
+static const int        cColorHeight = 1080;
 
 static const char* labelsRightArm[] = { "ShoulderRight","ElbowRight","WristRight","HandRight","End Site" };
 static const JointType JointsRightArm[5] = { JointType_ShoulderRight,JointType_ElbowRight, JointType_WristRight, JointType_HandRight, JointType_HandTipRight };
