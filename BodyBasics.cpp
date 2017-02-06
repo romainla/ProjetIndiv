@@ -55,7 +55,6 @@ CBodyBasics::CBodyBasics() :
 	m_pCoordinateMapper(NULL),
 	m_pMultiSourceFrameReader(NULL),
 	m_pBodyFrameReader(NULL),
-	m_pBodyIndexFrameReader(NULL),
 	m_pDepthCoordinates(NULL),
 	m_pD2DFactory(NULL),
 	m_pDrawCoordinateMapping(NULL),
@@ -68,7 +67,6 @@ CBodyBasics::CBodyBasics() :
 	m_pBrushHandOpen(NULL),
 	m_pBrushHandLasso(NULL),
 	m_pOutputRGBX(NULL),
-	m_pBackgroundRGBX(NULL),
 	m_pColorRGBX(NULL)
 {
 	LARGE_INTEGER qpf = { 0 };
@@ -82,9 +80,6 @@ CBodyBasics::CBodyBasics() :
 
 	// create heap storage for composite image pixel data in RGBX format
 	m_pOutputRGBX = new RGBQUAD[cColorWidth * cColorHeight];
-
-	// create heap storage for background image pixel data in RGBX format
-	m_pBackgroundRGBX = new RGBQUAD[cColorWidth * cColorHeight];
 
 	// create heap storage for color pixel data in RGBX format
 	m_pColorRGBX = new RGBQUAD[cColorWidth * cColorHeight];
@@ -102,8 +97,6 @@ CBodyBasics::~CBodyBasics()
 {
 	DiscardDirect2DResources();
 
-
-
 	// clean up Direct2D renderer
 	if (m_pDrawCoordinateMapping)
 	{
@@ -114,12 +107,6 @@ CBodyBasics::~CBodyBasics()
 	{
 		delete[] m_pOutputRGBX;
 		m_pOutputRGBX = NULL;
-	}
-
-	if (m_pBackgroundRGBX)
-	{
-		delete[] m_pBackgroundRGBX;
-		m_pBackgroundRGBX = NULL;
 	}
 
 	if (m_pColorRGBX)
@@ -142,9 +129,6 @@ CBodyBasics::~CBodyBasics()
 
 	// done with body frame reader
 	SafeRelease(m_pBodyFrameReader);
-
-	// done with body index frame reader
-	SafeRelease(m_pBodyIndexFrameReader);
 
 	// done with coordinate mapper
 	SafeRelease(m_pCoordinateMapper);
@@ -169,17 +153,6 @@ CBodyBasics::~CBodyBasics()
 /// <param name="nCmdShow">whether to display minimized, maximized, or normally</param>
 int CBodyBasics::Run(HINSTANCE hInstance, int nCmdShow)
 {
-	if (m_pBackgroundRGBX)
-	{
-		const RGBQUAD c_green = { 0, 255, 0 };
-
-		// Fill in with a background colour of green if we can't load the background image
-		for (int i = 0; i < cColorWidth * cColorHeight; ++i)
-		{
-			m_pBackgroundRGBX[i] = c_green;
-		}
-
-	}
 
 	MSG       msg = { 0 };
 	WNDCLASS  wc;
@@ -284,7 +257,6 @@ void CBodyBasics::drawMeshRendering() {
 
 	IMultiSourceFrame* pMultiSourceFrame = NULL;
 	IDepthFrame* pDepthFrame = NULL;
-	IColorFrame* pColorFrame = NULL;
 	IBodyIndexFrame* pBodyIndexFrame = NULL;
 
 	HRESULT hr = m_pMultiSourceFrameReader->AcquireLatestFrame(&pMultiSourceFrame);
@@ -302,18 +274,6 @@ void CBodyBasics::drawMeshRendering() {
 		SafeRelease(pDepthFrameReference);
 	}
 
-	if (SUCCEEDED(hr))
-	{
-		IColorFrameReference* pColorFrameReference = NULL;
-
-		hr = pMultiSourceFrame->get_ColorFrameReference(&pColorFrameReference);
-		if (SUCCEEDED(hr))
-		{
-			hr = pColorFrameReference->AcquireFrame(&pColorFrame);
-		}
-
-		SafeRelease(pColorFrameReference);
-	}
 
 	if (SUCCEEDED(hr))
 	{
@@ -336,13 +296,6 @@ void CBodyBasics::drawMeshRendering() {
 		int nDepthHeight = 0;
 		UINT nDepthBufferSize = 0;
 		UINT16 *pDepthBuffer = NULL;
-
-		IFrameDescription* pColorFrameDescription = NULL;
-		int nColorWidth = 0;
-		int nColorHeight = 0;
-		ColorImageFormat imageFormat = ColorImageFormat_None;
-		UINT nColorBufferSize = 0;
-		RGBQUAD *pColorBuffer = NULL;
 
 		IFrameDescription* pBodyIndexFrameDescription = NULL;
 		int nBodyIndexWidth = 0;
@@ -374,46 +327,6 @@ void CBodyBasics::drawMeshRendering() {
 			hr = pDepthFrame->AccessUnderlyingBuffer(&nDepthBufferSize, &pDepthBuffer);
 		}
 
-		// get color frame data
-
-		if (SUCCEEDED(hr))
-		{
-			hr = pColorFrame->get_FrameDescription(&pColorFrameDescription);
-		}
-
-		if (SUCCEEDED(hr))
-		{
-			hr = pColorFrameDescription->get_Width(&nColorWidth);
-		}
-
-		if (SUCCEEDED(hr))
-		{
-			hr = pColorFrameDescription->get_Height(&nColorHeight);
-		}
-
-		if (SUCCEEDED(hr))
-		{
-			hr = pColorFrame->get_RawColorImageFormat(&imageFormat);
-		}
-
-		if (SUCCEEDED(hr))
-		{
-			if (imageFormat == ColorImageFormat_Bgra)
-			{
-				hr = pColorFrame->AccessRawUnderlyingBuffer(&nColorBufferSize, reinterpret_cast<BYTE**>(&pColorBuffer));
-			}
-			else if (m_pColorRGBX)
-			{
-				pColorBuffer = m_pColorRGBX;
-				nColorBufferSize = cColorWidth * cColorHeight * sizeof(RGBQUAD);
-				hr = pColorFrame->CopyConvertedFrameDataToArray(nColorBufferSize, reinterpret_cast<BYTE*>(pColorBuffer), ColorImageFormat_Bgra);
-			}
-			else
-			{
-				hr = E_FAIL;
-			}
-		}
-
 		// get body index frame data
 
 		if (SUCCEEDED(hr))
@@ -439,17 +352,15 @@ void CBodyBasics::drawMeshRendering() {
 		if (SUCCEEDED(hr))
 		{
 			ProcessFrame(nDepthTime, pDepthBuffer,  nDepthHeight, nDepthWidth,
-				pColorBuffer, nColorWidth, nColorHeight,
+				cColorWidth, cColorHeight,
 				pBodyIndexBuffer, nBodyIndexWidth, nBodyIndexHeight);
 		}
 
 		SafeRelease(pDepthFrameDescription);
-		SafeRelease(pColorFrameDescription);
 		SafeRelease(pBodyIndexFrameDescription);
 	}
 
 	SafeRelease(pDepthFrame);
-	SafeRelease(pColorFrame);
 	SafeRelease(pBodyIndexFrame);
 	SafeRelease(pMultiSourceFrame);
 }
@@ -539,12 +450,15 @@ LRESULT CALLBACK CBodyBasics::DlgProc(HWND hWnd, UINT message, WPARAM wParam, LP
 	return FALSE;
 }
 
-void CBodyBasics::ProcessFrame(INT64 nTime, const UINT16 * pDepthBuffer, int nDepthHeight, int nDepthWidth, const RGBQUAD * pColorBuffer, int nColorWidth, int nColorHeight, const BYTE * pBodyIndexBuffer, int nBodyIndexWidth, int nBodyIndexHeight)
+//void CBodyBasics::ProcessFrame(INT64 nTime, const UINT16 * pDepthBuffer, int nDepthHeight, int nDepthWidth, const RGBQUAD * pColorBuffer, int nColorWidth, int nColorHeight, const BYTE * pBodyIndexBuffer, int nBodyIndexWidth, int nBodyIndexHeight)
+void CBodyBasics::ProcessFrame(INT64 nTime, const UINT16 * pDepthBuffer, int nDepthHeight, int nDepthWidth, int nColorWidth, int nColorHeight, const BYTE * pBodyIndexBuffer, int nBodyIndexWidth, int nBodyIndexHeight)
 {
+	const RGBQUAD c_black = { 0, 0, 0 };
+	const RGBQUAD c_blue = { 255, 0, 0 };
 	// Make sure we've received valid data
 	if (m_pCoordinateMapper && m_pDepthCoordinates && m_pOutputRGBX &&
 		pDepthBuffer && (nDepthWidth == cDepthWidth) && (nDepthHeight == cDepthHeight) &&
-		pColorBuffer && (nColorWidth == cColorWidth) && (nColorHeight == cColorHeight) &&
+		(nColorWidth == cColorWidth) && (nColorHeight == cColorHeight) &&
 		pBodyIndexBuffer && (nBodyIndexWidth == cDepthWidth) && (nBodyIndexHeight == cDepthHeight))
 	{
 		HRESULT hr = m_pCoordinateMapper->MapColorFrameToDepthSpace(nDepthWidth * nDepthHeight, (UINT16*)pDepthBuffer, nColorWidth * nColorHeight, m_pDepthCoordinates);
@@ -554,7 +468,7 @@ void CBodyBasics::ProcessFrame(INT64 nTime, const UINT16 * pDepthBuffer, int nDe
 			for (int colorIndex = 0; colorIndex < (nColorWidth*nColorHeight); ++colorIndex)
 			{
 				// default setting source to copy from the background pixel
-				const RGBQUAD* pSrc = m_pBackgroundRGBX + colorIndex;
+				RGBQUAD pSrc = c_black;
 
 				DepthSpacePoint p = m_pDepthCoordinates[colorIndex];
 
@@ -573,13 +487,13 @@ void CBodyBasics::ProcessFrame(INT64 nTime, const UINT16 * pDepthBuffer, int nDe
 						if (player != 0xff)
 						{
 							// set source for copy to the color pixel
-							pSrc = m_pColorRGBX + colorIndex;
+							pSrc = c_blue;
 						}
 					}
 				}
 
 				// write output
-				m_pOutputRGBX[colorIndex] = *pSrc;
+				m_pOutputRGBX[colorIndex] = pSrc;
 			}
 
 			// Draw the data with Direct2D
@@ -614,7 +528,7 @@ HRESULT CBodyBasics::InitializeDefaultSensor()
 		if (SUCCEEDED(hr))
 		{
 			hr = m_pKinectSensor->OpenMultiSourceFrameReader(
-				FrameSourceTypes::FrameSourceTypes_Depth | FrameSourceTypes::FrameSourceTypes_Color | FrameSourceTypes::FrameSourceTypes_BodyIndex,
+				FrameSourceTypes::FrameSourceTypes_Depth  | FrameSourceTypes::FrameSourceTypes_BodyIndex,
 				&m_pMultiSourceFrameReader);
 		}
 
@@ -635,20 +549,6 @@ HRESULT CBodyBasics::InitializeDefaultSensor()
 
 		SafeRelease(pBodyFrameSource);
 
-		// Initialize the Kinect and get coordinate mapper and the body reader
-		IBodyIndexFrameSource* pBodyIndexFrameSource = NULL;
-
-		if (SUCCEEDED(hr))
-		{
-			hr = m_pKinectSensor->get_BodyIndexFrameSource(&pBodyIndexFrameSource);
-		}
-
-		if (SUCCEEDED(hr))
-		{
-			hr = pBodyIndexFrameSource->OpenReader(&m_pBodyIndexFrameReader);
-		}
-
-		SafeRelease(pBodyIndexFrameSource);
 	}
 
 	if (!m_pKinectSensor || FAILED(hr))

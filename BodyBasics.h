@@ -77,14 +77,11 @@ private:
     // Body reader
     IBodyFrameReader*       m_pBodyFrameReader;
 
-	// Body index reader
-	IBodyIndexFrameReader*       m_pBodyIndexFrameReader;
-
+	
     // Direct2D
     ID2D1Factory*           m_pD2DFactory;
 	ImageRenderer*          m_pDrawCoordinateMapping;
 	RGBQUAD*                m_pOutputRGBX;
-	RGBQUAD*                m_pBackgroundRGBX;
 	RGBQUAD*                m_pColorRGBX;
 
     // Body/hand drawing
@@ -124,7 +121,7 @@ private:
 	/// </summary>
 	void                    ProcessFrame(INT64 nTime,
 		const UINT16* pDepthBuffer, int nDepthHeight, int nDepthWidth,
-		const RGBQUAD* pColorBuffer, int nColorWidth, int nColorHeight,
+		int nColorWidth, int nColorHeight,
 		const BYTE* pBodyIndexBuffer, int nBodyIndexWidth, int nBodyIndexHeight);
 
     /// <summary>
