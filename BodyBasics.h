@@ -69,6 +69,10 @@ private:
     // Current Kinect
     IKinectSensor*          m_pKinectSensor;
     ICoordinateMapper*      m_pCoordinateMapper;
+	DepthSpacePoint*        m_pDepthCoordinates;
+
+	// Frame reader
+	IMultiSourceFrameReader*m_pMultiSourceFrameReader;
 
     // Body reader
     IBodyFrameReader*       m_pBodyFrameReader;
@@ -79,6 +83,9 @@ private:
     // Direct2D
     ID2D1Factory*           m_pD2DFactory;
 	ImageRenderer*          m_pDrawCoordinateMapping;
+	RGBQUAD*                m_pOutputRGBX;
+	RGBQUAD*                m_pBackgroundRGBX;
+	RGBQUAD*                m_pColorRGBX;
 
     // Body/hand drawing
     ID2D1HwndRenderTarget*  m_pRenderTarget;
@@ -96,6 +103,29 @@ private:
     /// Main processing function
     /// </summary>
     void                    Update();
+
+	///<summary>
+	/// Do the mesh rendering
+	/// </summary>
+	void drawMeshRendering();
+
+	/// <summary>
+	/// Handle new depth and color data
+	/// <param name="nTime">timestamp of frame</param>
+	/// <param name="pDepthBuffer">pointer to depth frame data</param>
+	/// <param name="nDepthWidth">width (in pixels) of input depth image data</param>
+	/// <param name="nDepthHeight">height (in pixels) of input depth image data</param>
+	/// <param name="pColorBuffer">pointer to color frame data</param>
+	/// <param name="nColorWidth">width (in pixels) of input color image data</param>
+	/// <param name="nColorHeight">height (in pixels) of input color image data</param>
+	/// <param name="pBodyIndexBuffer">pointer to body index frame data</param>
+	/// <param name="nBodyIndexWidth">width (in pixels) of input body index data</param>
+	/// <param name="nBodyIndexHeight">height (in pixels) of input body index data</param>
+	/// </summary>
+	void                    ProcessFrame(INT64 nTime,
+		const UINT16* pDepthBuffer, int nDepthHeight, int nDepthWidth,
+		const RGBQUAD* pColorBuffer, int nColorWidth, int nColorHeight,
+		const BYTE* pBodyIndexBuffer, int nBodyIndexWidth, int nBodyIndexHeight);
 
     /// <summary>
     /// Initializes the default Kinect sensor
