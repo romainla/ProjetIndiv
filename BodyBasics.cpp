@@ -502,7 +502,7 @@ void CBodyBasics::ProcessBody(INT64 nTime, int nBodyCount, IBody** ppBodies)
 		if (SUCCEEDED(hr) && m_pCoordinateMapper)
 		{
 			(m_pDrawCoordinateMapping->m_pRenderTarget)-> BeginDraw();
-			(m_pDrawCoordinateMapping->m_pRenderTarget)->Clear();
+			//(m_pDrawCoordinateMapping->m_pRenderTarget)->Clear();
 			
 			int width = cColorWidth;
 			int height = cColorHeight;
