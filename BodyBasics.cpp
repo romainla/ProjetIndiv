@@ -45,16 +45,18 @@ int APIENTRY wWinMain(
 /// Constructor
 /// </summary>
 CBodyBasics::CBodyBasics() :
-    m_hWnd(NULL),
-    m_nStartTime(0),
-    m_nLastCounter(0),
-    m_nFramesSinceUpdate(0),
-    m_fFreq(0),
-    m_nNextStatusTime(0LL),
-    m_pKinectSensor(NULL),
-    m_pCoordinateMapper(NULL),
-    m_pBodyFrameReader(NULL),
+	m_hWnd(NULL),
+	m_nStartTime(0),
+	m_nLastCounter(0),
+	m_nFramesSinceUpdate(0),
+	m_fFreq(0),
+	m_nNextStatusTime(0LL),
+	m_pKinectSensor(NULL),
+	m_pCoordinateMapper(NULL),
+	m_pBodyFrameReader(NULL),
+	m_pBodyIndexFrameReader(NULL),
     m_pD2DFactory(NULL),
+	m_pDrawCoordinateMapping(NULL),
     m_pRenderTarget(NULL),
     m_pBrushJointTracked(NULL),
     m_pBrushJointInferred(NULL),
@@ -85,8 +87,18 @@ CBodyBasics::~CBodyBasics()
     // clean up Direct2D
     SafeRelease(m_pD2DFactory);
 
+	// clean up Direct2D renderer
+	if (m_pDrawCoordinateMapping)
+	{
+		delete m_pDrawCoordinateMapping;
+		m_pDrawCoordinateMapping = NULL;
+	}
+
     // done with body frame reader
     SafeRelease(m_pBodyFrameReader);
+
+	// done with body index frame reader
+	SafeRelease(m_pBodyIndexFrameReader);
 
     // done with coordinate mapper
     SafeRelease(m_pCoordinateMapper);
@@ -201,6 +213,46 @@ void CBodyBasics::Update()
     }
 
     SafeRelease(pBodyFrame);
+
+	IBodyIndexFrame* pBodyIndexFrame = NULL;
+
+	hr = m_pBodyIndexFrameReader->AcquireLatestFrame(&pBodyIndexFrame);
+
+	if (SUCCEEDED(hr)) {
+		IFrameDescription* pBodyIndexFrameDescription = NULL;
+		int nBodyIndexWidth = 0;
+		int nBodyIndexHeight = 0;
+		UINT nBodyIndexBufferSize = 0;
+		BYTE *pBodyIndexBuffer = NULL;
+
+		// get body index frame data
+
+		if (SUCCEEDED(hr))
+		{
+			hr = pBodyIndexFrame->get_FrameDescription(&pBodyIndexFrameDescription);
+		}
+
+		if (SUCCEEDED(hr))
+		{
+			hr = pBodyIndexFrameDescription->get_Width(&nBodyIndexWidth);
+		}
+
+		if (SUCCEEDED(hr))
+		{
+			hr = pBodyIndexFrameDescription->get_Height(&nBodyIndexHeight);
+		}
+
+		if (SUCCEEDED(hr))
+		{
+			hr = pBodyIndexFrame->AccessUnderlyingBuffer(&nBodyIndexBufferSize, &pBodyIndexBuffer);
+		}
+
+		// Draw the data with Direct2D
+		m_pDrawCoordinateMapping->Draw(pBodyIndexBuffer, nBodyIndexWidth * nBodyIndexHeight*sizeof(RGBQUAD));
+		SafeRelease(pBodyIndexFrameDescription);
+	}
+	SafeRelease(pBodyIndexFrame);
+	
 }
 
 /// <summary>
@@ -255,6 +307,17 @@ LRESULT CALLBACK CBodyBasics::DlgProc(HWND hWnd, UINT message, WPARAM wParam, LP
 
             // Init Direct2D
             D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &m_pD2DFactory);
+
+
+			// Create and initialize a new Direct2D image renderer (take a look at ImageRenderer.h)
+			// We'll use this to draw the data we receive from the Kinect to the screen
+			m_pDrawCoordinateMapping = new ImageRenderer();
+			HRESULT hr = m_pDrawCoordinateMapping->Initialize(GetDlgItem(m_hWnd, IDC_VIDEOVIEW), m_pD2DFactory, cColorWidth, cColorHeight, cColorWidth * sizeof(RGBQUAD));
+			if (FAILED(hr))
+			{
+				SetStatusMessage(L"Failed to initialize the Direct2D draw device.", 10000, true);
+			}
+
 
             // Get and initialize the default Kinect sensor
             InitializeDefaultSensor();
@@ -313,6 +376,21 @@ HRESULT CBodyBasics::InitializeDefaultSensor()
         }
 
         SafeRelease(pBodyFrameSource);
+
+		// Initialize the Kinect and get coordinate mapper and the body reader
+		IBodyIndexFrameSource* pBodyIndexFrameSource = NULL;
+		
+		if (SUCCEEDED(hr))
+		{
+			hr = m_pKinectSensor->get_BodyIndexFrameSource(&pBodyIndexFrameSource);
+		}
+
+		if (SUCCEEDED(hr))
+		{
+			hr = pBodyIndexFrameSource->OpenReader(&m_pBodyIndexFrameReader);
+		}
+
+		SafeRelease(pBodyIndexFrameSource);
     }
 
     if (!m_pKinectSensor || FAILED(hr))

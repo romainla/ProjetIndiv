@@ -10,11 +10,15 @@
 #include "myBVH.h"
 #include "myAngleFile.h"
 #include "common.h"
+#include "ImageRenderer.h"
 
 class CBodyBasics
 {
     static const int        cDepthWidth  = 512;
     static const int        cDepthHeight = 424;
+
+	static const int        cColorWidth = 1920;
+	static const int        cColorHeight = 1080;
 
 public:
     /// <summary>
@@ -69,8 +73,12 @@ private:
     // Body reader
     IBodyFrameReader*       m_pBodyFrameReader;
 
+	// Body index reader
+	IBodyIndexFrameReader*       m_pBodyIndexFrameReader;
+
     // Direct2D
     ID2D1Factory*           m_pD2DFactory;
+	ImageRenderer*          m_pDrawCoordinateMapping;
 
     // Body/hand drawing
     ID2D1HwndRenderTarget*  m_pRenderTarget;

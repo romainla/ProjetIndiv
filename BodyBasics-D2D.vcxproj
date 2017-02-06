@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BodyBasics.cpp" />
+    <ClCompile Include="ImageRenderer.cpp" />
     <ClCompile Include="myAngleFile.cpp" />
     <ClCompile Include="myBVH.cpp" />
     <ClCompile Include="myFilterOrientation.cpp" />
@@ -34,6 +35,7 @@
   <ItemGroup>
     <ClInclude Include="BodyBasics.h" />
     <ClInclude Include="common.h" />
+    <ClInclude Include="ImageRenderer.h" />
     <ClInclude Include="myAngleFile.h" />
     <ClInclude Include="myBVH.h" />
     <ClInclude Include="myFilterOrientation.h" />

@@ -1,3 +1,4 @@
+clear all; close all;
 %% General parameters
 refFileName = 'reference.csv';
 exerciseFileName = 'drinking_unhealthy.csv';
@@ -43,3 +44,4 @@ plotSignal(refInit.(refInit.NameColumns{3}),refInit.TimeStamp, exerciseInit.(exe
 plotSignal(refExercise.(refExercise.NameColumns{3}),refExercise.TimeStamp, exerciseExercise.(exerciseExercise.NameColumns{3}),exerciseExercise.TimeStamp,exerciseExercise.NameColumns{3});
 
 
+[approxiExercise, detailExercise, approxiRef, detailRef] = scriptWavelet(refExercise,exerciseExercise, exerciseExercise.NameColumns{3});
