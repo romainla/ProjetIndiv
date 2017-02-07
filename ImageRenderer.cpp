@@ -335,6 +335,7 @@ void ImageRenderer::DrawHand(HandState handState, const D2D1_POINT_2F& handPosit
 	}
 }
 
+
 void ImageRenderer::ProcessFrame(INT64 nTime, const UINT16 * pDepthBuffer, int nDepthHeight, int nDepthWidth, int nColorWidth, int nColorHeight, const BYTE * pBodyIndexBuffer, int nBodyIndexWidth, int nBodyIndexHeight, DepthSpacePoint* depthPoints)
 {
 	const RGBQUAD c_black = { 0, 0, 0 };
@@ -345,45 +346,44 @@ void ImageRenderer::ProcessFrame(INT64 nTime, const UINT16 * pDepthBuffer, int n
 		(nColorWidth == cColorWidth) && (nColorHeight == cColorHeight) &&
 		pBodyIndexBuffer && (nBodyIndexWidth == cDepthWidth) && (nBodyIndexHeight == cDepthHeight))
 	{
-		
-		
-			// loop over output pixels
-			for (int colorIndex = 0; colorIndex < (nColorWidth*nColorHeight); ++colorIndex)
+
+
+		// loop over output pixels
+		for (int colorIndex = 0; colorIndex < (nColorWidth*nColorHeight); ++colorIndex)
+		{
+			// default setting source to copy from the background pixel
+			RGBQUAD pSrc = c_black;
+
+			DepthSpacePoint p = depthPoints[colorIndex];
+
+			// Values that are negative infinity means it is an invalid color to depth mapping so we
+			// skip processing for this pixel
+			if (p.X != -std::numeric_limits<float>::infinity() && p.Y != -std::numeric_limits<float>::infinity())
 			{
-				// default setting source to copy from the background pixel
-				RGBQUAD pSrc = c_black;
+				int depthX = static_cast<int>(p.X + 0.5f);
+				int depthY = static_cast<int>(p.Y + 0.5f);
 
-				DepthSpacePoint p = depthPoints[colorIndex];
-
-				// Values that are negative infinity means it is an invalid color to depth mapping so we
-				// skip processing for this pixel
-				if (p.X != -std::numeric_limits<float>::infinity() && p.Y != -std::numeric_limits<float>::infinity())
+				if ((depthX >= 0 && depthX < nDepthWidth) && (depthY >= 0 && depthY < nDepthHeight))
 				{
-					int depthX = static_cast<int>(p.X + 0.5f);
-					int depthY = static_cast<int>(p.Y + 0.5f);
+					BYTE player = pBodyIndexBuffer[depthX + (depthY * cDepthWidth)];
 
-					if ((depthX >= 0 && depthX < nDepthWidth) && (depthY >= 0 && depthY < nDepthHeight))
+					// if we're tracking a player for the current pixel, draw from the color camera
+					if (player != 0xff)
 					{
-						BYTE player = pBodyIndexBuffer[depthX + (depthY * cDepthWidth)];
-
-						// if we're tracking a player for the current pixel, draw from the color camera
-						if (player != 0xff)
-						{
-							// set source for copy to the color pixel
-							pSrc = c_blue;
-						}
+						// set source for copy to the color pixel
+						pSrc = c_blue;
 					}
 				}
-
-				// write output
-				m_pOutputRGBX[colorIndex] = pSrc;
 			}
 
-			// Draw the data with Direct2D
-			Draw(reinterpret_cast<BYTE*>(m_pOutputRGBX), cColorWidth * cColorHeight * sizeof(RGBQUAD));
-
+			// write output
+			m_pOutputRGBX[colorIndex] = pSrc;
 		}
-	
-}
 
+		// Draw the data with Direct2D
+		Draw(reinterpret_cast<BYTE*>(m_pOutputRGBX), cColorWidth * cColorHeight * sizeof(RGBQUAD));
+
+	}
+
+}
 

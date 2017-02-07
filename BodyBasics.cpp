@@ -618,12 +618,12 @@ bool CBodyBasics::SetStatusMessage(_In_z_ WCHAR* szMessage, DWORD nShowTimeMsec,
 D2D1_POINT_2F CBodyBasics::BodyToScreen(const CameraSpacePoint& bodyPoint, int width, int height)
 {
 	// Calculate the body's position on the screen
-	DepthSpacePoint depthPoint = { 0 };
-	m_pCoordinateMapper->MapCameraPointToDepthSpace(bodyPoint, &depthPoint);
+	ColorSpacePoint depthPoint = { 0 };
+	m_pCoordinateMapper->MapCameraPointToColorSpace(bodyPoint, &depthPoint);
 
 	
-	float screenPointX = static_cast<float>(depthPoint.X * width) / cDepthWidth;
-	float screenPointY = static_cast<float>(depthPoint.Y * height) / cDepthHeight;
+	float screenPointX = static_cast<float>(depthPoint.X * width) / cColorWidth;
+	float screenPointY = static_cast<float>(depthPoint.Y * height) / cColorHeight;
 	
 	return D2D1::Point2F(screenPointX, screenPointY);
 }
