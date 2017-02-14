@@ -222,55 +222,80 @@ HRESULT ImageRenderer::Draw(BYTE* pImage, unsigned long cbImage)
 /// <param name="pJointPoints">joint positions converted to screen space</param>
 void ImageRenderer::DrawBody(const Joint* pJoints, const D2D1_POINT_2F* pJointPoints)
 {
+	static int lastRefresh = 0;
+
+	if (lastRefresh == 0) {
+		// Draw the bakcground and the mesh with Direct2D
+		Draw(reinterpret_cast<BYTE*>(m_pOutputRGBX), cColorWidth * cColorHeight * sizeof(RGBQUAD));
+	}
+	else {
+		m_pRenderTarget->Clear();
+	}
+	lastRefresh = (lastRefresh + 1) % NBFRAMEBETWEENREFRESH;
+
 	// Draw the bones
+	HRESULT hr = EnsureResources();
 
-	// Torso
-	DrawBone(pJoints, pJointPoints, JointType_Head, JointType_Neck);
-	DrawBone(pJoints, pJointPoints, JointType_Neck, JointType_SpineShoulder);
-	DrawBone(pJoints, pJointPoints, JointType_SpineShoulder, JointType_SpineMid);
-	DrawBone(pJoints, pJointPoints, JointType_SpineMid, JointType_SpineBase);
-	DrawBone(pJoints, pJointPoints, JointType_SpineShoulder, JointType_ShoulderRight);
-	DrawBone(pJoints, pJointPoints, JointType_SpineShoulder, JointType_ShoulderLeft);
-	DrawBone(pJoints, pJointPoints, JointType_SpineBase, JointType_HipRight);
-	DrawBone(pJoints, pJointPoints, JointType_SpineBase, JointType_HipLeft);
-
-	// Right Arm    
-	DrawBone(pJoints, pJointPoints, JointType_ShoulderRight, JointType_ElbowRight);
-	DrawBone(pJoints, pJointPoints, JointType_ElbowRight, JointType_WristRight);
-	DrawBone(pJoints, pJointPoints, JointType_WristRight, JointType_HandRight);
-	DrawBone(pJoints, pJointPoints, JointType_HandRight, JointType_HandTipRight);
-	DrawBone(pJoints, pJointPoints, JointType_WristRight, JointType_ThumbRight);
-
-	// Left Arm
-	DrawBone(pJoints, pJointPoints, JointType_ShoulderLeft, JointType_ElbowLeft);
-	DrawBone(pJoints, pJointPoints, JointType_ElbowLeft, JointType_WristLeft);
-	DrawBone(pJoints, pJointPoints, JointType_WristLeft, JointType_HandLeft);
-	DrawBone(pJoints, pJointPoints, JointType_HandLeft, JointType_HandTipLeft);
-	DrawBone(pJoints, pJointPoints, JointType_WristLeft, JointType_ThumbLeft);
-
-	// Right Leg
-	DrawBone(pJoints, pJointPoints, JointType_HipRight, JointType_KneeRight);
-	DrawBone(pJoints, pJointPoints, JointType_KneeRight, JointType_AnkleRight);
-	DrawBone(pJoints, pJointPoints, JointType_AnkleRight, JointType_FootRight);
-
-	// Left Leg
-	DrawBone(pJoints, pJointPoints, JointType_HipLeft, JointType_KneeLeft);
-	DrawBone(pJoints, pJointPoints, JointType_KneeLeft, JointType_AnkleLeft);
-	DrawBone(pJoints, pJointPoints, JointType_AnkleLeft, JointType_FootLeft);
-
-	// Draw the joints
-	for (int i = 0; i < JointType_Count; ++i)
+	if (SUCCEEDED(hr))
 	{
-		D2D1_ELLIPSE ellipse = D2D1::Ellipse(pJointPoints[i], c_JointThickness, c_JointThickness);
+		m_pRenderTarget->BeginDraw();
+		//m_pRenderTarget->Clear();
+	// Torso
+		DrawBone(pJoints, pJointPoints, JointType_Head, JointType_Neck);
+		DrawBone(pJoints, pJointPoints, JointType_Neck, JointType_SpineShoulder);
+		DrawBone(pJoints, pJointPoints, JointType_SpineShoulder, JointType_SpineMid);
+		DrawBone(pJoints, pJointPoints, JointType_SpineMid, JointType_SpineBase);
+		DrawBone(pJoints, pJointPoints, JointType_SpineShoulder, JointType_ShoulderRight);
+		DrawBone(pJoints, pJointPoints, JointType_SpineShoulder, JointType_ShoulderLeft);
+		DrawBone(pJoints, pJointPoints, JointType_SpineBase, JointType_HipRight);
+		DrawBone(pJoints, pJointPoints, JointType_SpineBase, JointType_HipLeft);
 
-		if (pJoints[i].TrackingState == TrackingState_Inferred)
+		// Right Arm    
+		DrawBone(pJoints, pJointPoints, JointType_ShoulderRight, JointType_ElbowRight);
+		DrawBone(pJoints, pJointPoints, JointType_ElbowRight, JointType_WristRight);
+		DrawBone(pJoints, pJointPoints, JointType_WristRight, JointType_HandRight);
+		DrawBone(pJoints, pJointPoints, JointType_HandRight, JointType_HandTipRight);
+		DrawBone(pJoints, pJointPoints, JointType_WristRight, JointType_ThumbRight);
+
+		// Left Arm
+		DrawBone(pJoints, pJointPoints, JointType_ShoulderLeft, JointType_ElbowLeft);
+		DrawBone(pJoints, pJointPoints, JointType_ElbowLeft, JointType_WristLeft);
+		DrawBone(pJoints, pJointPoints, JointType_WristLeft, JointType_HandLeft);
+		DrawBone(pJoints, pJointPoints, JointType_HandLeft, JointType_HandTipLeft);
+		DrawBone(pJoints, pJointPoints, JointType_WristLeft, JointType_ThumbLeft);
+
+		// Right Leg
+		DrawBone(pJoints, pJointPoints, JointType_HipRight, JointType_KneeRight);
+		DrawBone(pJoints, pJointPoints, JointType_KneeRight, JointType_AnkleRight);
+		DrawBone(pJoints, pJointPoints, JointType_AnkleRight, JointType_FootRight);
+
+		// Left Leg
+		DrawBone(pJoints, pJointPoints, JointType_HipLeft, JointType_KneeLeft);
+		DrawBone(pJoints, pJointPoints, JointType_KneeLeft, JointType_AnkleLeft);
+		DrawBone(pJoints, pJointPoints, JointType_AnkleLeft, JointType_FootLeft);
+
+		// Draw the joints
+		for (int i = 0; i < JointType_Count; ++i)
 		{
-			m_pRenderTarget->FillEllipse(ellipse, m_pBrushJointInferred);
+			D2D1_ELLIPSE ellipse = D2D1::Ellipse(pJointPoints[i], c_JointThickness, c_JointThickness);
+
+			if (pJoints[i].TrackingState == TrackingState_Inferred)
+			{
+				m_pRenderTarget->FillEllipse(ellipse, m_pBrushJointInferred);
+			}
+			else if (pJoints[i].TrackingState == TrackingState_Tracked)
+			{
+				m_pRenderTarget->FillEllipse(ellipse, m_pBrushJointTracked);
+			}
 		}
-		else if (pJoints[i].TrackingState == TrackingState_Tracked)
-		{
-			m_pRenderTarget->FillEllipse(ellipse, m_pBrushJointTracked);
-		}
+		(m_pRenderTarget)->EndDraw();
+	}
+	// Device lost, need to recreate the render target
+	// We'll dispose it now and retry drawing
+	if (D2DERR_RECREATE_TARGET == hr)
+	{
+		hr = S_OK;
+		DiscardResources();
 	}
 }
 
@@ -380,8 +405,6 @@ void ImageRenderer::ProcessFrame(INT64 nTime, const UINT16 * pDepthBuffer, int n
 			m_pOutputRGBX[colorIndex] = pSrc;
 		}
 
-		// Draw the data with Direct2D
-		Draw(reinterpret_cast<BYTE*>(m_pOutputRGBX), cColorWidth * cColorHeight * sizeof(RGBQUAD));
 
 	}
 

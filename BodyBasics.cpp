@@ -80,7 +80,7 @@ CBodyBasics::~CBodyBasics()
 		delete m_pDrawCoordinateMapping;
 		m_pDrawCoordinateMapping = NULL;
 	}
-	
+
 
 	if (m_pDepthCoordinates)
 	{
@@ -175,16 +175,23 @@ int CBodyBasics::Run(HINSTANCE hInstance, int nCmdShow)
 /// </summary>
 void CBodyBasics::Update()
 {
+	static int lastRefreshMeshRendering = 0;
 	if (!m_pBodyFrameReader)
 	{
 		return;
 	}
 
 	IBodyFrame* pBodyFrame = NULL;
+	HRESULT hr = S_OK;
+	if (lastRefreshMeshRendering == 0) {
+		pBodyFrame = drawMeshRendering();
+	}
+	else {
+		hr = m_pBodyFrameReader->AcquireLatestFrame(&pBodyFrame);
+	}
 
-	HRESULT hr = m_pBodyFrameReader->AcquireLatestFrame(&pBodyFrame);
 
-	if (SUCCEEDED(hr))
+	if (SUCCEEDED(hr) && pBodyFrame != NULL)
 	{
 		INT64 nTime = 0;
 
@@ -209,22 +216,27 @@ void CBodyBasics::Update()
 	}
 
 	SafeRelease(pBodyFrame);
-
-	drawMeshRendering();
-
+	lastRefreshMeshRendering = (lastRefreshMeshRendering + 1) % NBFRAMEBETWEENREFRESH;
 }
 
-void CBodyBasics::drawMeshRendering() {
+IBodyFrame* CBodyBasics::drawMeshRendering() {
 	if (!m_pMultiSourceFrameReader)
 	{
-		return;
+		return NULL;
 	}
 
 	IMultiSourceFrame* pMultiSourceFrame = NULL;
 	IDepthFrame* pDepthFrame = NULL;
 	IBodyIndexFrame* pBodyIndexFrame = NULL;
+	IBodyFrame* pBodyFrame = NULL;
 
-	HRESULT hr = m_pMultiSourceFrameReader->AcquireLatestFrame(&pMultiSourceFrame);
+	HRESULT hr = m_pBodyFrameReader->AcquireLatestFrame(&pBodyFrame);
+
+	if (!SUCCEEDED(hr)) {
+		return NULL;
+	}
+
+	hr = m_pMultiSourceFrameReader->AcquireLatestFrame(&pMultiSourceFrame);
 
 	if (SUCCEEDED(hr))
 	{
@@ -317,7 +329,7 @@ void CBodyBasics::drawMeshRendering() {
 		if (SUCCEEDED(hr))
 		{
 			HRESULT hr = m_pCoordinateMapper->MapColorFrameToDepthSpace(nDepthWidth * nDepthHeight, (UINT16*)pDepthBuffer, cColorWidth * cColorHeight, m_pDepthCoordinates);
-			m_pDrawCoordinateMapping->ProcessFrame(nDepthTime, pDepthBuffer,  nDepthHeight, nDepthWidth,
+			m_pDrawCoordinateMapping->ProcessFrame(nDepthTime, pDepthBuffer, nDepthHeight, nDepthWidth,
 				cColorWidth, cColorHeight,
 				pBodyIndexBuffer, nBodyIndexWidth, nBodyIndexHeight, m_pDepthCoordinates);
 		}
@@ -329,6 +341,8 @@ void CBodyBasics::drawMeshRendering() {
 	SafeRelease(pDepthFrame);
 	SafeRelease(pBodyIndexFrame);
 	SafeRelease(pMultiSourceFrame);
+
+	return pBodyFrame;
 }
 
 
@@ -438,7 +452,7 @@ HRESULT CBodyBasics::InitializeDefaultSensor()
 		if (SUCCEEDED(hr))
 		{
 			hr = m_pKinectSensor->OpenMultiSourceFrameReader(
-				FrameSourceTypes::FrameSourceTypes_Depth  | FrameSourceTypes::FrameSourceTypes_BodyIndex,
+				FrameSourceTypes::FrameSourceTypes_Depth | FrameSourceTypes::FrameSourceTypes_BodyIndex,
 				&m_pMultiSourceFrameReader);
 		}
 
@@ -497,64 +511,49 @@ void CBodyBasics::ProcessBody(INT64 nTime, int nBodyCount, IBody** ppBodies)
 	static double fps = 0.0;
 	if (m_hWnd)
 	{
-		HRESULT hr = m_pDrawCoordinateMapping->EnsureResources();
+		HRESULT hr;
 
-		if (SUCCEEDED(hr) && m_pCoordinateMapper)
+		int width = cColorWidth;
+		int height = cColorHeight;
+
+		for (int i = 0; i < nBodyCount; ++i)
 		{
-			(m_pDrawCoordinateMapping->m_pRenderTarget)-> BeginDraw();
-			//(m_pDrawCoordinateMapping->m_pRenderTarget)->Clear();
-			
-			int width = cColorWidth;
-			int height = cColorHeight;
-
-			for (int i = 0; i < nBodyCount; ++i)
+			IBody* pBody = ppBodies[i];
+			if (pBody)
 			{
-				IBody* pBody = ppBodies[i];
-				if (pBody)
+				BOOLEAN bTracked = false;
+				hr = pBody->get_IsTracked(&bTracked);
+
+				if (SUCCEEDED(hr) && bTracked)
 				{
-					BOOLEAN bTracked = false;
-					hr = pBody->get_IsTracked(&bTracked);
 
-					if (SUCCEEDED(hr) && bTracked)
+					m_myBVH.update(pBody, fps);
+					m_myAngleFile.update(pBody, fps, currentPhase);
+
+					Joint joints[JointType_Count];
+					D2D1_POINT_2F jointPoints[JointType_Count];
+					HandState leftHandState = HandState_Unknown;
+					HandState rightHandState = HandState_Unknown;
+
+					pBody->get_HandLeftState(&leftHandState);
+					pBody->get_HandRightState(&rightHandState);
+
+					hr = pBody->GetJoints(_countof(joints), joints);
+					if (SUCCEEDED(hr))
 					{
-
-						m_myBVH.update(pBody, fps);
-						m_myAngleFile.update(pBody, fps, currentPhase);
-
-						Joint joints[JointType_Count];
-						D2D1_POINT_2F jointPoints[JointType_Count];
-						HandState leftHandState = HandState_Unknown;
-						HandState rightHandState = HandState_Unknown;
-
-						pBody->get_HandLeftState(&leftHandState);
-						pBody->get_HandRightState(&rightHandState);
-
-						hr = pBody->GetJoints(_countof(joints), joints);
-						if (SUCCEEDED(hr))
+						for (int j = 0; j < _countof(joints); ++j)
 						{
-							for (int j = 0; j < _countof(joints); ++j)
-							{
-								jointPoints[j] = BodyToScreen(joints[j].Position, width, height);
-							}
-
-							m_pDrawCoordinateMapping -> DrawBody(joints, jointPoints);
-
-							m_pDrawCoordinateMapping->DrawHand(leftHandState, jointPoints[JointType_HandLeft]);
-							m_pDrawCoordinateMapping->DrawHand(rightHandState, jointPoints[JointType_HandRight]);
+							jointPoints[j] = BodyToScreen(joints[j].Position, width, height);
 						}
+
+						m_pDrawCoordinateMapping->DrawBody(joints, jointPoints);
+
+						m_pDrawCoordinateMapping->DrawHand(leftHandState, jointPoints[JointType_HandLeft]);
+						m_pDrawCoordinateMapping->DrawHand(rightHandState, jointPoints[JointType_HandRight]);
 					}
 				}
 			}
 
-			(m_pDrawCoordinateMapping ->m_pRenderTarget )->EndDraw();
-
-			// Device lost, need to recreate the render target
-			// We'll dispose it now and retry drawing
-			if (D2DERR_RECREATE_TARGET == hr)
-			{
-				hr = S_OK;
-				m_pDrawCoordinateMapping->DiscardResources();
-			}
 		}
 
 		if (!m_nStartTime)
@@ -621,9 +620,9 @@ D2D1_POINT_2F CBodyBasics::BodyToScreen(const CameraSpacePoint& bodyPoint, int w
 	ColorSpacePoint depthPoint = { 0 };
 	m_pCoordinateMapper->MapCameraPointToColorSpace(bodyPoint, &depthPoint);
 
-	
+
 	float screenPointX = static_cast<float>(depthPoint.X * width) / cColorWidth;
 	float screenPointY = static_cast<float>(depthPoint.Y * height) / cColorHeight;
-	
+
 	return D2D1::Point2F(screenPointX, screenPointY);
 }

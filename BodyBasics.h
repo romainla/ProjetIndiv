@@ -86,7 +86,7 @@ private:
 	///<summary>
 	/// Do the mesh rendering
 	/// </summary>
-	void drawMeshRendering();
+	IBodyFrame* drawMeshRendering();
 
 	
     /// <summary>

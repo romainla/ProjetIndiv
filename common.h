@@ -32,6 +32,8 @@ static phaseExercise currentPhase = phaseExercise::INITIALIZATION;
 #define YPR 0
 #define YRP 1
 
+#define NBFRAMEBETWEENREFRESH 2
+
 #if (YRP == 1) 
 static const char* labelsChannels[] = { "Xposition","Yposition","Zposition","Zrotation","Xrotation","Yrotation" };
 #else
