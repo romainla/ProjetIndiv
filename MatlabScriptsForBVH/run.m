@@ -1,7 +1,22 @@
 clear;
 configcmu
 
-outputFolder = './PredictedBVH';
+nameJointAddNoise = 'foot';
+
+button = questdlg(strcat('The current body part on which noise is added is: "',nameJointAddNoise, '" do you want to change it ?'),'Change noisy body part','Yes','No','No');
+switch button
+    case 'Yes',
+        prompt = {'Enter the name of the body part (ensure it exists in the bvh file, case insensitive)'};
+        dlg_title = 'Input';
+        num_lines = 1;
+        defaultans = {nameJointAddNoise};
+        answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
+        nameJointAddNoise = answer{1};
+    case 'No',
+end
+
+
+outputFolder = strcat('./PredictedBVH_',nameJointAddNoise);
 activity='walk';
 train_prec=0.5;%this is the percentage of training files in terms of all files associated with activity
 
@@ -54,7 +69,7 @@ for i=1:length(test_bvhfiles)
     skeleton_test{i}.data = skeleton_test{i}.data(:,1:4:end);
     skeleton_test{i}.descriptions.nbFrames = size(skeleton_test{i}.data,2);
     %Step2=> add noise to get corrupted joint information
-    skeleton_noisy{i} = skeleton_test{i};
+    [skeleton_noisy{i}] = addNoiseSelectedJoint(skeleton_test{i},nameJointAddNoise,0.1);
     
     %Step3=> using the autoencoder nerual network trained during training stage
     testSet  = skeleton_noisy{i}.data; 
