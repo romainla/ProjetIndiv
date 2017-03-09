@@ -7,7 +7,8 @@ noiseRelativeDuration = 0.1; %1 means all the record will have added noise,
                              %half of the recording will have added noise..
 varNoise = 60; % variance of the Gaussian Noise which will be added
 nbMaxEpochs = 2000;
-sparsityProportion = 0.2;
+sparsityProportion = 0.005;
+sparsityRegularization = 1;
 
 button = questdlg(strcat('The current body part on which noise is added is: "',nameJointAddNoise, '" do you want to change it ?'),'Change noisy body part','Yes','No','No');
 switch button
@@ -24,7 +25,7 @@ end
 
 outputFolder = strcat('./PredictedBVH_',nameJointAddNoise);
 activity='walk';
-train_prec=0.5;%this is the percentage of training files in terms of all files associated with activity
+train_prec=0.8;%this is the percentage of training files in terms of all files associated with activity
 
 
 [datalist_numerics, datalist_strings] = xlsread(datalistfile);
@@ -40,6 +41,7 @@ train_bvhfiles= randomorderedbvhfiles(1:train_filenum);
 test_bvhfiles= randomorderedbvhfiles(train_filenum+1:length(randomorderedbvhfiles));
 
 skeleton = cell(1,length(train_bvhfiles));
+skeleton_train_noisy = cell(1,length(train_bvhfiles));
 %training stage
 for i=1:length(train_bvhfiles)
     bvhfile= train_bvhfiles{i};
@@ -50,16 +52,48 @@ for i=1:length(train_bvhfiles)
     skeleton{i}.data = skeleton{i}.data(:,1:4:end);
     skeleton{i}.descriptions.nbFrames = size(skeleton{i}.data,2);
     %Step2=> add noise to get corrupted joint information
-    
+    [skeleton_train_noisy{i}] = addNoiseSelectedJoint(skeleton{i},nameJointAddNoise,noiseRelativeDuration, varNoise);
     %Step3=> preparing the data to train an autoencoder nerual network
     if i==1
-        trainingSet = zeros(size(skeleton{i}.data,1),0);
+        trainingSet_target = zeros(size(skeleton{i}.data,1),0);
+        trainingSet_signalPlusNoise = zeros(size(skeleton_train_noisy{i}.data,1),0);
     end
-    trainingSet  = [trainingSet skeleton{i}.data]; 
+    trainingSet_target  = [trainingSet_target skeleton{i}.data]; 
+    trainingSet_signalPlusNoise  = [trainingSet_signalPlusNoise skeleton_train_noisy{i}.data]; 
 end
 %Step3=> training a autoencoder nerual network to reconstruct the pose
-autoenc_rxyz = trainAutoencoder(trainingSet,'ShowProgressWindow',false,'MaxEpochs',nbMaxEpochs,'SparsityProportion',sparsityProportion);
+%autoenc_rxyz = trainAutoencoder(trainingSet_target,'ShowProgressWindow',false,'MaxEpochs',nbMaxEpochs,'SparsityProportion',sparsityProportion, 'SparsityRegularization',sparsityRegularization);
+%%  Adaptive Noise Cancellation Using RLS Adaptive Filtering
 
+% The noisy-free data
+Hs = dsp.SignalSource(trainingSet_target','SamplesPerFrame',30);
+
+%%
+% The noise picked up by the secondary microphone is the input for the RLS
+% adaptive filter. The sum of the filtered noise and the information bear-
+%ing signal is the desired signal for the adaptive filter.
+
+noise = (trainingSet_signalPlusNoise - trainingSet_target)';   % White noise
+Hn = dsp.SignalSource(noise,'SamplesPerFrame',30);
+% Set and initialize RLS adaptive filter parameters and values:
+
+M      = 40;                 % Filter order
+delta  = varNoise;                % Initial input covariance estimate
+P0     = (1/delta)*eye(M,M); % Initial setting for the P matrix
+Hadapt = dsp.RLSFilter(M,'InitialInverseCovariance',P0);
+
+% Running the RLS adaptive filter for 1000 iterations. As the adaptive
+% filter converges, the filtered noise should be completely subtracted from
+% the "signal + noise". Also the error, 'e', should contain only the
+% original signal.
+ 
+for k = 1:floor(length(trainingSet_target)/30)
+    n = step(Hn); % Noise
+    s = step(Hs);
+    d = n + s;
+    [y,e]  = step(Hadapt,n,d);
+end
+%% 
 
 %testing stage
 skeleton_test = cell(1,length(test_bvhfiles));
