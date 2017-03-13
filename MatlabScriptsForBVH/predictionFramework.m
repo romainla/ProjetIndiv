@@ -1,4 +1,4 @@
-function [ dataout ] = predictionFramework( dataid,testX, testnoiseX, batchsize, testY )
+function [ dataout ] = predictionFramework( dataid,testX, testnoiseX, batchsize )
 %UNTITLED4 Summary of this function goes here
 %   Detailed explanation goes here
 %
@@ -11,7 +11,7 @@ function [ dataout ] = predictionFramework( dataid,testX, testnoiseX, batchsize,
 %load([dataid 'hp2']);
 %load([dataid 'po']);
 
-[testbatchdata,testnoisebatchdata, testbatchtargets] = genbatch(testX, testnoiseX, batchsize, testY);
+[testbatchdata,testnoisebatchdata] = genbatch(testX, testnoiseX, batchsize);
 [numcases numdims numbatches]=size(testnoisebatchdata);
 N=numcases;
 %%%% PREINITIALIZE WEIGHTS OF THE AUTOENCODER %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

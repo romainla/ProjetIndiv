@@ -1,4 +1,4 @@
-function [ X, noiseX, testX, testnoiseX, Y, testY, imh, imw, lambda, dataid, batchsize ] = convertToFrameworkFormat( skeleton, skeleton_noisy, skeleton_test,skeleton_test_noisy )
+function [ X, noiseX, testX, testnoiseX, imh, imw, lambda, dataid, batchsize ] = convertToFrameworkFormat( skeleton, skeleton_noisy, skeleton_test,skeleton_test_noisy )
 %convertToFrameworkFormat Convert the data to be able to use the framework developed by G.CHEN
 %	Inputs:
 %
@@ -13,10 +13,6 @@ function [ X, noiseX, testX, testnoiseX, Y, testY, imh, imw, lambda, dataid, bat
 %	-testnoiseX: matrice of size nbLines*nbColumns where nbLines
 % 		=nb of files and nbColumns = size of a file. It 	
 %		contains the noisy data used for testing the network
-%	-Y: contains the labels of the training data (only 1 class 
-%		here)
-%	-testY: contains the labels of the testing data (only 1
-%		class  here)
 %	-imh: height of the "images". Each column will correspond to
 %		one sample of motion capture so imh = nbofchannels-3
 %		(We consider that the X, Y and Z translation of the 
@@ -28,11 +24,11 @@ function [ X, noiseX, testX, testnoiseX, Y, testY, imh, imw, lambda, dataid, bat
 %	-dataid: name for registering the final data
 %	-batchsize: number of files which form a group for training
 
-batchsize = 10; 
+batchsize = 16; 
 dataid = 'motionCapture'; 
 lambda = 1; 
 
-imh = skeleton{1}.descriptions.nbChannels - 3;
+imh = skeleton{1}.descriptions.nbChannels - 6;
 numberTrainingFiles = size(skeleton,2);
 numberTestFiles = size(skeleton_test,2);
 
@@ -55,20 +51,18 @@ imw = longestSample;
 % them in the range [0; 1]
 X = zeros(numberTrainingFiles ,imh * imw);
 noiseX = zeros(numberTrainingFiles ,imh * imw);
-Y = ones(numberTrainingFiles,1);
 
 testX = zeros(numberTestFiles ,imh * imw);
 testnoiseX = zeros(numberTestFiles ,imh * imw);
-testY = ones(numberTestFiles ,1);
 
 for i=1:numberTrainingFiles
-	temp = skeleton{i}.data(4:end,:);
+	temp = skeleton{i}.data(7:end,:);
 	temp = temp(:); %becomes a vector where each raw of the
 				% skeleton data is written successively
 	temp = temp./360 + 1/2; %normalize data between 0 and 1
 	X(i,1:skeleton{i}.descriptions.nbFrames * imh) = temp;
 
-	temp = skeleton_noisy{i}.data(4:end,:);
+	temp = skeleton_noisy{i}.data(7:end,:);
 	temp = temp(:); %becomes a vector where each raw of the
 				% skeleton data is written successively
 	temp = temp./360 + 1/2; %normalize data between 0 and 1
@@ -77,13 +71,13 @@ for i=1:numberTrainingFiles
 end
 
 for i=1:numberTestFiles 
-	temp = skeleton_test{i}.data(4:end,:);
+	temp = skeleton_test{i}.data(7:end,:);
 	temp = temp(:); %becomes a vector where each raw of the
 				% skeleton data is written successively
 	temp = temp./360 + 1/2; %normalize data between 0 and 1
 	testX(i,1:skeleton_test{i}.descriptions.nbFrames * imh) = temp;
 
-	temp = skeleton_test_noisy{i}.data(4:end,:);
+	temp = skeleton_test_noisy{i}.data(7:end,:);
 	temp = temp(:); %becomes a vector where each raw of the
 				% skeleton data is written successively
 	temp = temp./360 + 1/2; %normalize data between 0 and 1

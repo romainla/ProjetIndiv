@@ -7,10 +7,14 @@ muNoise = 0;
 skeleton_noisy = skeleton;
 nbFrameOfNoise = floor(relativeDuration * skeleton.descriptions.nbFrames);
 correspondingIndexes = [];
+if ~strcmp(labelJoint,'all')
 for i=1:skeleton.descriptions.nbChannels
    if ~isempty(regexpi(skeleton.descriptions.nameDegrees{i} ,labelJoint))
        correspondingIndexes = [correspondingIndexes i];
    end
+end
+else
+   correspondingIndexes = 1:1:skeleton.descriptions.nbChannels;
 end
 noise = sqrt(varNoise).*randn(length(correspondingIndexes),nbFrameOfNoise) + muNoise;
 start = floor(rand(1,1)*(skeleton.descriptions.nbFrames - nbFrameOfNoise));

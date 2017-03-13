@@ -78,14 +78,14 @@ for i=1:length(test_bvhfiles)
 end
 
 % Prepare data in a dormat which can be used by the framework of G.CHEN
-[ X, noiseX, testX, testnoiseX, Y, testY, imh, imw, lambda, dataid, batchsize ] = convertToFrameworkFormat( skeleton, skeleton_train_noisy, skeleton_test,skeleton_noisy );
+[ X, noiseX, testX, testnoiseX, imh, imw, lambda, dataid, batchsize ] = convertToFrameworkFormat( skeleton, skeleton_train_noisy, skeleton_test,skeleton_noisy );
 % To test more quickly the framework, save the data into a workspace 
 nameWorkspace = './testerSDAE.mat';
-save(nameWorkspace,'X', 'noiseX', 'testX', 'testnoiseX', 'Y', 'testY', 'imh', 'imw', 'lambda', 'dataid', 'batchsize', 'skeleton', 'skeleton_train_noisy', 'skeleton_test', 'skeleton_noisy','outputFolder')
+save(nameWorkspace,'X', 'noiseX', 'testX', 'testnoiseX', 'imh', 'imw', 'lambda', 'dataid', 'batchsize', 'skeleton', 'skeleton_train_noisy', 'skeleton_test', 'skeleton_noisy','outputFolder')
 % Train the SDAE
-jointlearn_dae_4layers(X, noiseX, Y, batchsize, lambda, dataid);
+jointlearn_dae_4layers(X, noiseX, batchsize, lambda, dataid);
 % Use the SDAE to correct the noise of the skeleto_noisy data
-[ dataout ] = predictionFramework( dataid,testX, testnoiseX, batchsize, testY );
+[ dataout ] = predictionFramework( dataid,testX, testnoiseX, batchsize );
 % Save the corrected data into skeleton structure to register it into a BVH
 % file
 [ skeleton_predicted] = convertFromFrameworkToSkeleton( skeleton_test, dataout );

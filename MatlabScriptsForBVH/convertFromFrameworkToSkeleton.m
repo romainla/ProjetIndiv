@@ -11,7 +11,7 @@ function [ skeleton_predicted] = convertFromFrameworkToSkeleton( skeleton, data 
 
 skeleton_predicted = skeleton;
 
-imh = skeleton{1}.descriptions.nbChannels - 3;
+imh = skeleton{1}.descriptions.nbChannels - 6;
 numberTrainingFiles = size(skeleton,2);
 
 for i=1:numberTrainingFiles
@@ -22,8 +22,8 @@ for i=1:numberTrainingFiles
 	%reshape the data into the form of a skeleton.data
 	temp = reshape(temp,imh,skeleton{i}.descriptions.nbFrames);
 	%stores the translation data which were not predicted
-	skeleton_predicted{i}.data(1:3,:) = 	skeleton{i}.data(1:3,:);
-	skeleton_predicted{i}.data(4:end,:) = temp;
+	skeleton_predicted{i}.data(1:6,:) = 	skeleton{i}.data(1:6,:);
+	skeleton_predicted{i}.data(7:end,:) = temp;
 end
 
 end

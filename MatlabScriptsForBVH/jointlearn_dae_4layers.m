@@ -1,4 +1,4 @@
-function jointlearn_dae_4layers(X, noiseX, Y, batchsize, lambda, dataid)
+function jointlearn_dae_4layers(X, noiseX, batchsize, lambda, dataid)
 
 
 % 
