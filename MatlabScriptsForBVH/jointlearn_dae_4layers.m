@@ -1,4 +1,4 @@
-function jointlearn_dae_4layers(X, noiseX, batchsize, lambda, dataid)
+function jointlearn_dae_4layers(X, noiseX, batchsize, lambda, dataid, maxepoch, factorWeight)
 
 
 % 
@@ -8,15 +8,15 @@ function jointlearn_dae_4layers(X, noiseX, batchsize, lambda, dataid)
 %
 % close all
 
-maxepoch=50; %In the Science paper we use maxepoch=50, but it works just fine. 
+%maxepoch=50; %In the Science paper we use maxepoch=50, but it works just fine. 
 
 
 % for mnist 
 % numhid=100; % numpen=64; numpen2=250; 
-numhid =400; numpen=200;numpen2=250; 
+numhid =400 * factorWeight; numpen=200* factorWeight;numpen2=250 * factorWeight; 
 %for mnist
 % numopen=64;
-numopen = 100;
+numopen = 100 * factorWeight;
 
 [batchdata, noisebatchdata] = genbatch(X, noiseX, batchsize);
 

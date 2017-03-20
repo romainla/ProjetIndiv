@@ -6,7 +6,7 @@ noiseRelativeDuration = 0.1; %1 means all the record will have added noise,
                              %0 means no noise will be added, 0.5 means
                              %half of the recording will have added noise..
 varNoise = 60; % variance of the Gaussian Noise which will be added
-nbMaxEpochs = 200;
+nbMaxEpochs = 1000;
 
 button = questdlg(strcat('The current body part on which noise is added is: "',nameJointAddNoise, '" do you want to change it ?'),'Change noisy body part','Yes','No','No');
 switch button
@@ -38,19 +38,32 @@ train_filenum= length(randomorderedbvhfiles)*train_prec;
 train_bvhfiles= randomorderedbvhfiles(1:train_filenum);
 test_bvhfiles= randomorderedbvhfiles(train_filenum+1:length(randomorderedbvhfiles));
 
-skeleton = cell(1,length(train_bvhfiles));
-skeleton_train_noisy = cell(1,length(train_bvhfiles));
+skeleton = cell(1,length(train_bvhfiles)*4);
+skeleton_train_noisy = cell(1,length(train_bvhfiles)*4);
 %training stage
-for i=1:length(train_bvhfiles)
-    bvhfile= train_bvhfiles{i};
+for i=1:4:4*length(train_bvhfiles)
+    bvhfile= train_bvhfiles{floor(i/4) + 1};
     [skeleton{i}]=openBVH(bvhfile);%load bvh file and get all joints information and their corresponding timestamp
     
     %Todo:
     %Step1=> downsampling from 120Hz to 30Hz since Kinect data is 30Hz and we would like to simluate the data as Kinect SDK obtained
-    skeleton{i}.data = skeleton{i}.data(:,1:4:end);
+    data = skeleton{i}.data;
+    skeleton{i+1} = skeleton{i};
+    skeleton{i+2} = skeleton{i};
+    skeleton{i+3} = skeleton{i};
+    skeleton{i}.data = data(:,1:4:end);
+    skeleton{i+1}.data = data(:,2:4:end);
+    skeleton{i+2}.data = data(:,3:4:end);
+    skeleton{i+3}.data = data(:,4:4:end);
     skeleton{i}.descriptions.nbFrames = size(skeleton{i}.data,2);
+    skeleton{i+1}.descriptions.nbFrames = size(skeleton{i+1}.data,2);
+    skeleton{i+2}.descriptions.nbFrames = size(skeleton{i+2}.data,2);
+    skeleton{i+3}.descriptions.nbFrames = size(skeleton{i+3}.data,2);
     %Step2=> add noise to get corrupted joint information
     [skeleton_train_noisy{i}] = addNoiseSelectedJoint(skeleton{i},nameJointAddNoise,noiseRelativeDuration, varNoise);
+    [skeleton_train_noisy{i+1}] = addNoiseSelectedJoint(skeleton{i+1},nameJointAddNoise,noiseRelativeDuration, varNoise);
+    [skeleton_train_noisy{i+2}] = addNoiseSelectedJoint(skeleton{i+2},nameJointAddNoise,noiseRelativeDuration, varNoise);
+    [skeleton_train_noisy{i+3}] = addNoiseSelectedJoint(skeleton{i+3},nameJointAddNoise,noiseRelativeDuration, varNoise);
     
 end
 
@@ -83,7 +96,7 @@ end
 nameWorkspace = './testerSDAE.mat';
 save(nameWorkspace,'X', 'noiseX', 'testX', 'testnoiseX', 'imh', 'imw', 'lambda', 'dataid', 'batchsize', 'skeleton', 'skeleton_train_noisy', 'skeleton_test', 'skeleton_noisy','outputFolder')
 % Train the SDAE
-jointlearn_dae_4layers(X, noiseX, batchsize, lambda, dataid);
+jointlearn_dae_4layers(X, noiseX, batchsize, lambda, dataid, nbMaxEpochs, 1);
 % Use the SDAE to correct the noise of the skeleto_noisy data
 [ dataout ] = predictionFramework( dataid,testX, testnoiseX, batchsize );
 % Save the corrected data into skeleton structure to register it into a BVH

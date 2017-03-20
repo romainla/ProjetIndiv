@@ -4,7 +4,7 @@
 %
 % 
 
-maxepoch=200;
+%maxepoch=200;
 fprintf(1,'\nFine-tuning deep autoencoder by minimizing cross entropy error. \n');
 fprintf(1,'60 batches of 1000 cases each. \n');
 
@@ -36,6 +36,7 @@ l5=size(w5,1)-1;
 l6=size(w6,1)-1;
 l7=size(w7,1)-1;
 l8=size(w8,1)-1;
+l9=size(w1,1)-1;
 train_err=[];
 
 for epoch = 1:maxepoch
@@ -102,7 +103,7 @@ N=numcases;
 %%%%%%%%%%%%%%% PERFORM CONJUGATE GRADIENT WITH 3 LINESEARCHES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   max_iter=3;
   VV = [w1(:)' w2(:)' w3(:)' w4(:)' w5(:)' w6(:)' w7(:)' w8(:)' ]';
-  Dim = [l1; l2; l3; l4; l5; l6; l7; l8];
+  Dim = [l1; l2; l3; l4; l5; l6; l7; l8; l9];
 
   % [X, fX] = minimize(VV,'CG_MNIST',max_iter,Dim,data);
   [X, fX] = minimize(VV,'JOINT_BACK_CG_4LAYER',max_iter,Dim, data, noisedata, lambda);

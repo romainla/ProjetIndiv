@@ -39,9 +39,13 @@ end
 [exerciseExercise] = keepOnlyOnePhase(exerciseFile, 'exercise');
 
 %% Plots of the reference signal and the exercise signal over time for different types of signal
-plotSignal(refInit.(refInit.NameColumns{3}),refInit.TimeStamp, exerciseInit.(exerciseInit.NameColumns{3}),exerciseInit.TimeStamp,refInit.NameColumns{3});
+[Selection,ok] = listdlg('Name','Data to plot','PromptString','Which plot(s) in the list above do you want to have?','ListString',refExercise.NameColumns(3:end)); %Ask the user which data mus be plotted
 
-plotSignal(refExercise.(refExercise.NameColumns{3}),refExercise.TimeStamp, exerciseExercise.(exerciseExercise.NameColumns{3}),exerciseExercise.TimeStamp,exerciseExercise.NameColumns{3});
+for j=1:length(Selection)
+    i= Selection(j)+2;
+    plotSignal(refExercise.(refExercise.NameColumns{i}),refExercise.TimeStamp, exerciseExercise.(exerciseExercise.NameColumns{i}),exerciseExercise.TimeStamp,exerciseExercise.NameColumns{i});
+end
+
 
 %[approxiExercise, detailExercise, approxiRef, detailRef] = scriptWavelet(refExercise,exerciseExercise, exerciseExercise.NameColumns{3});
 %Previous line is commented because the wavelet analysis is not needed any

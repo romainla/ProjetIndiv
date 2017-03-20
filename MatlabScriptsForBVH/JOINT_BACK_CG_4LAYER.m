@@ -12,6 +12,7 @@ l5= Dim(5);
 l6= Dim(6);
 l7= Dim(7);
 l8= Dim(8);
+l9 = Dim(9);
 N = size(XX,1);
 
 % Do decomversion.

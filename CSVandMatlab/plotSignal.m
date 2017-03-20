@@ -8,8 +8,10 @@ function [] = plotSignal( reference,referenceTime, exercise, exerciseTime, label
     label = strrep(label,'_',' ');
     titleFig = strcat(label,': evolution over time for reference (up) and exercise (down)');
     subplot(2,1,1); plot(referenceTime, reference, 'b'); ylim([minimum maximum]);
-    xlabel(label);
+    ylabel(label);
+    xlabel('time (s)')
     subplot(2,1,2); plot(exerciseTime, exercise, 'r'); ylim([minimum maximum]);
-    xlabel(label);
+    xlabel('time (s)')
+    ylabel(label);
     title(titleFig);
 end
