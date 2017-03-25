@@ -279,22 +279,10 @@ void myAngleFile::saveAndClose()
 {
 	if (m_alreadyCreated) {
 		this->saveFile();
-		fclose(m_angleFile);
-
-		for (int i = 0; i < m_nbMinRecorded + 1; i++) {
-			if (i < m_nbMinRecorded) {
-				for (int j = 0; j < nbFrameByRaw; j++)free(m_bufferFrame[i][j]);
-				free(m_bufferFrame[i]);
-			}
-			else {
-				int limit = m_nbFrame % nbFrameByRaw;
-				for (int j = 0; j < limit; j++)free(m_bufferFrame[i][j]);
-				free(m_bufferFrame[i]);
-			}
-		}
+		fclose(m_angleFile);	
 	}
 	free(m_filename);
-	free(m_bufferFrame);
+	delete[] m_bufferFrame;
 }
 
 // TO DO: adapt this function to the angleFile
