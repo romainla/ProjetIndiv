@@ -29,7 +29,7 @@ private :
 	
 public:
 	myBVH();
-	myBVH(char* filename, typeExercise exercise);
+	myBVH(const char* filename, typeExercise exercise);
 
 	/// <summary>
 	/// Function to create the bvh file

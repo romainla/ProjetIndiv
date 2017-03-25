@@ -21,17 +21,10 @@ myBVH::myBVH()
 	m_bufferFrame = (double***)malloc(nbMinMaxOfRecording * sizeof(double**));
 }
 
-myBVH::myBVH(char* filename, typeExercise exercise) {
-	std::stringstream filenamestream;
-#if (YPR == 1) 
-	filenamestream << filename << "YPR.bvh";
-	m_filename = (char*)malloc((strlen(filenamestream.str().c_str()) + 1)*sizeof(char));
-	strcpy(m_filename, filenamestream.str().c_str());
-#else
-	filenamestream << filename << "YRP.bvh";
-	m_filename = (char*)malloc((strlen(filenamestream.str().c_str()) + 1)*sizeof(char));
-	strcpy(m_filename, filenamestream.str().c_str());
-#endif
+myBVH::myBVH(const char* filename, typeExercise exercise) {
+	
+	m_filename = (char*)malloc((strlen(filename) + 1)*sizeof(char));
+	strcpy(m_filename, filename);
 	m_alreadyCreatedBvh = false;
 	m_nbFrame = 0;
 	m_fps = 0.00;

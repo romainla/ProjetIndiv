@@ -45,12 +45,10 @@ myAngleFile::myAngleFile()
 	m_phase = phaseExercise::INITIALIZATION;
 }
 
-myAngleFile::myAngleFile(char * filename, typeExercise exercise)
+myAngleFile::myAngleFile(const char * filename, typeExercise exercise)
 {
-	std::stringstream filenamestream;
-	filenamestream << "CSVandMatlab\\" << filename << ".csv";
-	m_filename = (char*)malloc((strlen(filenamestream.str().c_str()) + 1)*sizeof(char));
-	strcpy(m_filename, filenamestream.str().c_str());
+	m_filename = (char*)malloc((strlen(filename) + 1)*sizeof(char));
+	strcpy(m_filename, filename);
 	m_alreadyCreated = false;
 	m_nbFrame = 0;
 	m_fps = 0.00;

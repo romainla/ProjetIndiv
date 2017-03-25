@@ -6,6 +6,8 @@
 #include <string>
 #define _USE_MATH_DEFINES
 #include <math.h>
+#include <shellapi.h>
+#include <iostream>
 #include "myFilterOrientation.h"
 #include "myFilterPosition.h"
 
@@ -27,7 +29,16 @@ typedef enum phaseExercise {
 	COUNT = 3
 } phaseExercise; 
 
-static phaseExercise currentPhase = phaseExercise::INITIALIZATION;
+// Default parameters
+#define DEFAULT_EXERCISE WHOLE_BODY_RIGHT
+#define DEFAULT_NAME "whole_right_abs"
+
+extern phaseExercise currentPhase;
+extern typeExercise typeExo;
+extern std::stringstream nameCSV;
+extern std::stringstream nameBVH;
+extern const char* namePhases[];
+extern const char* nameExo[];
 
 #define YPR 0
 #define YRP 1

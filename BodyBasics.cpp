@@ -9,12 +9,6 @@
 #include "resource.h"
 #include "BodyBasics.h"
 
-
-
-// To easily change the type of exercise used : exercise chosen = 1, others = 0
-#define EXERCISE WHOLE_BODY_RIGHT
-#define NAME_EX "whole_right_abs"
-
 /// <summary>
 /// Entry point for the application
 /// </summary>
@@ -31,8 +25,74 @@ int APIENTRY wWinMain(
 	)
 {
 	UNREFERENCED_PARAMETER(hPrevInstance);
-	UNREFERENCED_PARAMETER(lpCmdLine);
+	//UNREFERENCED_PARAMETER(lpCmdLine);
 
+	AllocConsole();
+	freopen("CONIN$", "r", stdin);
+	freopen("CONOUT$", "w", stdout);
+	freopen("CONOUT$", "w", stderr);
+	char buffer[500];
+	LPWSTR *szArglist;
+	int nArgs;
+	int i;
+	bool nameGiven = false;
+	szArglist = CommandLineToArgvW(GetCommandLine(), &nArgs);
+	if (nArgs == 1)
+	{
+		std::cout << "The following default parameters will be used"<<std::endl<<"Name files: "<< DEFAULT_NAME<< std::endl<< "For more information use -h"<<std::endl;
+	}
+	else for (i = 1; i < nArgs; i+=2) {
+		if (wcsstr(szArglist[i], L"-h")) {
+			std::cout << "Help: -h = displays this help menu" << std::endl << "-n = changes name files: " << std::endl << "-t = changes type of exercise (whole, up or low + right or left)"<<std::endl;
+			std::cin >> i;
+			return 0;
+		}
+		if (wcsstr(szArglist[i], L"-n")) {
+			nameGiven = true;
+			wcstombs(buffer, szArglist[i + 1],500);
+			nameCSV << buffer << ".csv\0";
+			nameBVH << buffer << ".bvh\0";
+		}
+		if (wcsstr(szArglist[i], L"-t")) {
+			if (wcsstr(_wcslwr(szArglist[i + 1]), L"wh")) {
+				if (wcsstr(_wcslwr(szArglist[i + 1]), L"ri")) {
+					typeExo = typeExercise::WHOLE_BODY_RIGHT;
+				}
+				else {
+					typeExo = typeExercise::WHOLE_BODY_LEFT;
+				}				
+			}
+			if (wcsstr(_wcslwr(szArglist[i + 1]), L"up")) {
+				if (wcsstr(_wcslwr(szArglist[i + 1]), L"ri")) {
+					typeExo = typeExercise::UPPER_LIMB_RIGHT;
+				}
+				else {
+					typeExo = typeExercise::UPPER_LIMB_LEFT;
+				}
+			}
+			if (wcsstr(_wcslwr(szArglist[i + 1]), L"low")) {
+				if (wcsstr(_wcslwr(szArglist[i + 1]), L"ri")) {
+					typeExo = typeExercise::LOWER_LIMB_RIGHT;
+				}
+				else {
+					typeExo = typeExercise::LOWER_LIMB_LEFT;
+				}
+			}
+		}
+		
+	}
+
+	// Free memory allocated for CommandLineToArgvW arguments.
+
+	LocalFree(szArglist);
+	if (!nameGiven) {
+		nameCSV << DEFAULT_NAME << ".csv\0";
+		nameBVH << DEFAULT_NAME << ".bvh\0";
+	}
+
+	std::cout << "The following parameters will be used for the acquisition:" << std::endl << std::endl << "Files names: " << nameCSV.str() << " and " << nameBVH.str() << std::endl << "Type of exercise: " << nameExo[(int)typeExo]<<std::endl;
+	std::cout<< std::endl << "For more information about changing the files names or type of exercise, use -h" << std::endl << std::endl << "-------------------------------------------------------------------------------" << std::endl << std::endl << "The acquisition starts in initialization phase. When the subject is ready, press space button to turn it into exercise phase."<<std::endl<<"When the exercise is finished, press space button to turn the acquisition into post-exercise phase."<<std::endl<<"When you are done, click on the quit button of the acquisition window."<<std::endl;
+	std::cout << std::endl << std::endl << "-------------------------------------------------------------------------------" << std::endl << std::endl;
 	CBodyBasics application;
 	application.Run(hInstance, nShowCmd);
 }
@@ -60,8 +120,8 @@ CBodyBasics::CBodyBasics() :
 		m_fFreq = double(qpf.QuadPart);
 	}
 
-	m_myBVH = myBVH(NAME_EX, EXERCISE);
-	m_myAngleFile = myAngleFile(NAME_EX, EXERCISE);
+	m_myBVH = myBVH(nameBVH.str().c_str(), typeExo);
+	m_myAngleFile = myAngleFile(nameCSV.str().c_str(), typeExo);
 
 	// create heap storage for the coorinate mapping from color to depth
 	m_pDepthCoordinates = new DepthSpacePoint[cColorWidth * cColorHeight];
@@ -506,6 +566,7 @@ void CBodyBasics::ProcessBody(INT64 nTime, int nBodyCount, IBody** ppBodies)
 	if (keyPressed && keyReleased) {
 		currentPhase = (phaseExercise)((int)(currentPhase + 1) % (int)phaseExercise::COUNT);
 		keyReleased = false;
+		std::cout << "Phase changed, new phase = " << namePhases[(int)(currentPhase)]<< std::endl;
 	}
 
 	static double fps = 0.0;

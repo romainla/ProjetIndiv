@@ -41,7 +41,7 @@ private:
 public:
 	
 	myAngleFile();
-	myAngleFile(char* filename, typeExercise exercise);
+	myAngleFile(const char* filename, typeExercise exercise);
 
 	/// <summary>
 	/// Function to create the angle file

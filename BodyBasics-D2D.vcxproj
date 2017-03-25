@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BodyBasics.cpp" />
+    <ClCompile Include="common.cpp" />
     <ClCompile Include="ImageRenderer.cpp" />
     <ClCompile Include="myAngleFile.cpp" />
     <ClCompile Include="myBVH.cpp" />
